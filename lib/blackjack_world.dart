@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 
@@ -13,6 +14,9 @@ import 'components/table_pile.dart';
 
 class BlackJackWorld extends World
     with HasGameReference<BlackJackGame> {
+  @override
+  bool get debugMode => true;
+
   final cardGap = BlackJackGame.cardGap;
   final borderGap = BlackJackGame.borderGap;
   final cardSpaceWidth = BlackJackGame.cardSpaceWidth;
@@ -36,11 +40,18 @@ class BlackJackWorld extends World
 
   @override
   Future<void> onLoad() async {
-    await Flame.images.load('blackjack-sprites.png');
+    await Flame.images.load('klondike-sprites.png');
+
+    draw.position =
+        Vector2(borderGap, game.camera.viewport.size.y);
+    /*
+
+    ***********************************
+    TODO: position for each pile
 
     draw.position = Vector2(
         cardGap, (game.size.y - borderGap - cardHeight));
-    opponentDraw.position = Vector2(cardGap, borderGap);
+     opponentDraw.position = Vector2(cardGap, borderGap);
 
     table.position = Vector2(
         (game.size.x / 2 - borderGap - cardWidth),
@@ -53,9 +64,9 @@ class BlackJackWorld extends World
         (game.size.x - borderGap - cardWidth),
         (game.size.y - borderGap - cardHeight));
     opponentDiscard.position = Vector2(
-        (game.size.x - borderGap - cardWidth), borderGap);
-
-    /* TODO: position for each pile
+        (game.size.x - borderGap - cardWidth), borderGap); 
+        
+        ********************************
     
     stock.position = Vector2(cardGap, borderGap);
     waste.position =
@@ -113,17 +124,17 @@ class BlackJackWorld extends World
         4 * cardSpaceHeight + borderGap);
     final gameMidX = playAreaSize.x / 2;
 
-    addButton('New deal', gameMidX, Action.newDeal);
+    /*  addButton('New deal', gameMidX, Action.newDeal);
     addButton('Same deal', gameMidX + cardSpaceWidth,
         Action.sameDeal);
     addButton('Have fun', gameMidX + 3 * cardSpaceWidth,
-        Action.haveFun);
-
+        Action.haveFun); */
     final camera = game.camera;
+    /* camera.viewport = FixedResolutionViewport(
+        resolution: Vector2(720, 1280)); */
     camera.viewfinder.visibleGameSize = playAreaSize;
     camera.viewfinder.position = Vector2(gameMidX, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
-
     deal();
   }
 
