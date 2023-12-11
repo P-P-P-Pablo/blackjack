@@ -7,6 +7,9 @@ import 'card.dart';
 class TablePile extends PositionComponent
     with HasGameReference<BlackJackGame>
     implements Pile {
+  @override
+  bool get debugMode => true;
+
   TablePile({super.position})
       : super(size: BlackJackGame.cardSize);
 

@@ -11,6 +11,9 @@ import 'discard_pile.dart';
 class DrawPile extends PositionComponent
     with HasGameReference<BlackJackGame>
     implements Pile {
+  @override
+  bool get debugMode => true;
+
   DrawPile({super.position})
       : super(size: BlackJackGame.cardSize);
 

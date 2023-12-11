@@ -18,6 +18,9 @@ class Card extends PositionComponent
         DragCallbacks,
         TapCallbacks,
         HasWorldReference<BlackJackWorld> {
+  @override
+  bool get debugMode => true;
+
   Card(int intRank, int intSuit, {this.isBaseCard = false})
       : rank = Rank.fromInt(intRank),
         suit = Suit.fromInt(intSuit),
@@ -28,7 +31,6 @@ class Card extends PositionComponent
   final Rank rank;
   final Suit suit;
   Pile? pile;
-
   // A Base Card is rendered in outline only and is NOT playable. It can be
   // added to the base of a Pile (e.g. the Stock Pile) to allow it to handle
   // taps and short drags (on an empty Pile) with the same behavior and
@@ -430,7 +432,7 @@ class Card extends PositionComponent
   void handleTapUp() {
     // Can be called by onTapUp or after a very short (failed) drag-and-drop.
     // We need to be more user-friendly towards taps that include a short drag.
-    if (pile?.canMoveCard(this, MoveMethod.tap) ?? false) {
+    /* if (pile?.canMoveCard(this, MoveMethod.tap) ?? false) {
       final suitIndex = suit.value;
       if (world.foundations[suitIndex]
           .canAcceptCard(this)) {
@@ -444,7 +446,7 @@ class Card extends PositionComponent
       }
     } else if (pile is DrawPile) {
       world.stock.handleTapUp(this);
-    }
+    } */
   }
 
   //#endRegion

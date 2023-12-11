@@ -7,6 +7,9 @@ import 'card.dart';
 class DiscardPile extends PositionComponent
     with HasGameReference<BlackJackGame>
     implements Pile {
+  @override
+  bool get debugMode => true;
+
   DiscardPile({super.position})
       : super(size: BlackJackGame.cardSize);
 

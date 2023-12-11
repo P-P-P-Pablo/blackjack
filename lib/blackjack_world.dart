@@ -14,9 +14,12 @@ import 'components/table_pile.dart';
 class BlackJackWorld extends World
     with HasGameReference<BlackJackGame> {
   final cardGap = BlackJackGame.cardGap;
-  final topGap = BlackJackGame.topGap;
+  final borderGap = BlackJackGame.borderGap;
   final cardSpaceWidth = BlackJackGame.cardSpaceWidth;
   final cardSpaceHeight = BlackJackGame.cardSpaceHeight;
+
+  final cardWidth = BlackJackGame.cardWidth;
+  final cardHeight = BlackJackGame.cardHeight;
 
   final draw = DrawPile(position: Vector2(0.0, 0.0));
   final table = TablePile(position: Vector2(0.0, 0.0));
@@ -35,11 +38,28 @@ class BlackJackWorld extends World
   Future<void> onLoad() async {
     await Flame.images.load('blackjack-sprites.png');
 
+    draw.position = Vector2(
+        cardGap, (game.size.y - borderGap - cardHeight));
+    opponentDraw.position = Vector2(cardGap, borderGap);
+
+    table.position = Vector2(
+        (game.size.x / 2 - borderGap - cardWidth),
+        (2 * game.size.y / 3 - borderGap - cardHeight));
+    opponentTable.position = Vector2(
+        (game.size.x / 2 - borderGap - cardWidth),
+        (game.size.y / 3 - borderGap - cardHeight));
+
+    discard.position = Vector2(
+        (game.size.x - borderGap - cardWidth),
+        (game.size.y - borderGap - cardHeight));
+    opponentDiscard.position = Vector2(
+        (game.size.x - borderGap - cardWidth), borderGap);
+
     /* TODO: position for each pile
     
-    stock.position = Vector2(cardGap, topGap);
+    stock.position = Vector2(cardGap, borderGap);
     waste.position =
-        Vector2(cardSpaceWidth + cardGap, topGap);
+        Vector2(cardSpaceWidth + cardGap, borderGap);
 
      for (var i = 0; i < 4; i++) {
       foundations.add(
@@ -47,7 +67,7 @@ class BlackJackWorld extends World
           i,
           checkWin,
           position: Vector2(
-              (i + 3) * cardSpaceWidth + cardGap, topGap),
+              (i + 3) * cardSpaceWidth + cardGap, borderGap),
         ),
       );
     }
@@ -56,7 +76,7 @@ class BlackJackWorld extends World
         TableauPile(
           position: Vector2(
             i * cardSpaceWidth + cardGap,
-            cardSpaceHeight + topGap,
+            cardSpaceHeight + borderGap,
           ),
         ),
       );
@@ -90,7 +110,7 @@ class BlackJackWorld extends World
     add(opponentBaseCard);
 
     playAreaSize = Vector2(7 * cardSpaceWidth + cardGap,
-        4 * cardSpaceHeight + topGap);
+        4 * cardSpaceHeight + borderGap);
     final gameMidX = playAreaSize.x / 2;
 
     addButton('New deal', gameMidX, Action.newDeal);
@@ -111,8 +131,9 @@ class BlackJackWorld extends World
       String label, double buttonX, Action action) {
     final button = FlatButton(
       label,
-      size: Vector2(BlackJackGame.cardWidth, 0.6 * topGap),
-      position: Vector2(buttonX, topGap / 2),
+      size:
+          Vector2(BlackJackGame.cardWidth, 0.6 * borderGap),
+      position: Vector2(buttonX, borderGap / 2),
       onReleased: () {
         if (action == Action.haveFun) {
           // Shortcut to the "win" sequence, for Tutorial purposes only.
