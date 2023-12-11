@@ -1,6 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter/foundation.dart';
-import '../klondike_game.dart';
+import '../blackjack_game.dart';
 
 @immutable
 class Rank {
@@ -21,8 +21,8 @@ class Rank {
     double y2,
     double w,
     double h,
-  )   : redSprite = klondikeSprite(x1, y1, w, h),
-        blackSprite = klondikeSprite(x2, y2, w, h);
+  )   : redSprite = blackjackSprite(x1, y1, w, h),
+        blackSprite = blackjackSprite(x2, y2, w, h);
 
   final int value;
   final String label;

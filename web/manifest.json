@@ -1,6 +1,6 @@
 {
-    "name": "klondike",
-    "short_name": "klondike",
+    "name": "blackjack",
+    "short_name": "blackjack",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

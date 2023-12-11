@@ -1,6 +1,6 @@
 import 'package:flame/sprite.dart';
 import 'package:flutter/foundation.dart';
-import '../klondike_game.dart';
+import '../blackjack_game.dart';
 
 @immutable
 class Suit {
@@ -14,7 +14,7 @@ class Suit {
 
   Suit._(this.value, this.label, double x, double y,
       double w, double h)
-      : sprite = klondikeSprite(x, y, w, h);
+      : sprite = blackjackSprite(x, y, w, h);
 
   final int value;
   final String label;

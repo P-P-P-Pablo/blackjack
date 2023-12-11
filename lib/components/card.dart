@@ -6,25 +6,23 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/animation.dart';
 
-import '../klondike_game.dart';
-import '../klondike_world.dart';
+import '../blackjack_game.dart';
+import '../blackjack_world.dart';
 import '../models/pile.dart';
 import '../models/rank.dart';
 import '../models/suit.dart';
-import 'foundation.dart';
-import 'stock.dart';
-import 'tableau_pile.dart';
+import 'draw_pile.dart';
 
 class Card extends PositionComponent
     with
         DragCallbacks,
         TapCallbacks,
-        HasWorldReference<KlondikeWorld> {
+        HasWorldReference<BlackJackWorld> {
   Card(int intRank, int intSuit, {this.isBaseCard = false})
       : rank = Rank.fromInt(intRank),
         suit = Suit.fromInt(intSuit),
         super(
-          size: KlondikeGame.cardSize,
+          size: BlackJackGame.cardSize,
         );
 
   final Rank rank;
@@ -34,7 +32,7 @@ class Card extends PositionComponent
   // A Base Card is rendered in outline only and is NOT playable. It can be
   // added to the base of a Pile (e.g. the Stock Pile) to allow it to handle
   // taps and short drags (on an empty Pile) with the same behavior and
-  // tolerances as for regular cards (see KlondikeGame.dragTolerance) and using
+  // tolerances as for regular cards (see BlackJackGame.dragTolerance) and using
   // the same event-handling code, but with different handleTapUp() methods.
   final bool isBaseCard;
 
@@ -89,12 +87,12 @@ class Card extends PositionComponent
     ..style = PaintingStyle.stroke
     ..strokeWidth = 35;
   static final RRect cardRRect = RRect.fromRectAndRadius(
-    KlondikeGame.cardSize.toRect(),
-    const Radius.circular(KlondikeGame.cardRadius),
+    BlackJackGame.cardSize.toRect(),
+    const Radius.circular(BlackJackGame.cardRadius),
   );
   static final RRect backRRectInner = cardRRect.deflate(40);
   static final Sprite flameSprite =
-      klondikeSprite(1367, 6, 357, 501);
+      blackjackSprite(1367, 6, 357, 501);
 
   void _renderBack(Canvas canvas) {
     canvas.drawRRect(cardRRect, backBackgroundPaint);
@@ -124,18 +122,19 @@ class Card extends PositionComponent
       BlendMode.srcATop,
     );
   static final Sprite redJack =
-      klondikeSprite(81, 565, 562, 488);
+      blackjackSprite(81, 565, 562, 488);
   static final Sprite redQueen =
-      klondikeSprite(717, 541, 486, 515);
+      blackjackSprite(717, 541, 486, 515);
   static final Sprite redKing =
-      klondikeSprite(1305, 532, 407, 549);
+      blackjackSprite(1305, 532, 407, 549);
   static final Sprite blackJack =
-      klondikeSprite(81, 565, 562, 488)..paint = blueFilter;
+      blackjackSprite(81, 565, 562, 488)
+        ..paint = blueFilter;
   static final Sprite blackQueen =
-      klondikeSprite(717, 541, 486, 515)
+      blackjackSprite(717, 541, 486, 515)
         ..paint = blueFilter;
   static final Sprite blackKing =
-      klondikeSprite(1305, 532, 407, 549)
+      blackjackSprite(1305, 532, 407, 549)
         ..paint = blueFilter;
 
   void _renderFront(Canvas canvas) {
@@ -300,7 +299,7 @@ class Card extends PositionComponent
 
   @override
   void onTapCancel(TapCancelEvent event) {
-    if (pile is StockPile) {
+    if (pile is DrawPile) {
       _isDragging = false;
       handleTapUp();
     }
@@ -309,7 +308,7 @@ class Card extends PositionComponent
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    if (pile is StockPile) {
+    if (pile is DrawPile) {
       _isDragging = false;
       return;
     }
@@ -319,14 +318,14 @@ class Card extends PositionComponent
     if (pile?.canMoveCard(this, MoveMethod.drag) ?? false) {
       _isDragging = true;
       priority = 100;
-      if (pile is TableauPile) {
+      /* if (pile is TableauPile) {
         final extraCards =
             (pile! as TableauPile).cardsOnTop(this);
         for (final card in extraCards) {
           card.priority = attachedCards.length + 101;
           attachedCards.add(card);
         }
-      }
+      } */
     }
   }
 
@@ -353,7 +352,7 @@ class Card extends PositionComponent
     // If short drag, return card to Pile and treat it as having been tapped.
     final shortDrag =
         (position - _whereCardStarted).length <
-            KlondikeGame.dragTolerance;
+            BlackJackGame.dragTolerance;
     if (shortDrag && attachedCards.isEmpty) {
       doMove(
         _whereCardStarted,
@@ -375,7 +374,7 @@ class Card extends PositionComponent
       if (dropPiles.first.canAcceptCard(this)) {
         // Found a Pile: move card(s) the rest of the way onto it.
         pile!.removeCard(this, MoveMethod.drag);
-        if (dropPiles.first is TableauPile) {
+        /* if (dropPiles.first is TableauPile) {
           // Get TableauPile to handle positions, priorities and moves of cards.
           (dropPiles.first as TableauPile)
               .dropCards(this, attachedCards);
@@ -390,7 +389,7 @@ class Card extends PositionComponent
               dropPiles.first.acquireCard(this);
             },
           );
-        }
+        } */
         return;
       }
     }
@@ -443,7 +442,7 @@ class Card extends PositionComponent
           },
         );
       }
-    } else if (pile is StockPile) {
+    } else if (pile is DrawPile) {
       world.stock.handleTapUp(this);
     }
   }

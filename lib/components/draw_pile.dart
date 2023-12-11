@@ -1,17 +1,18 @@
 import 'dart:ui';
 
 import 'package:flame/components.dart';
-import 'package:klondike/models/pile.dart';
+import 'package:blackjack/models/pile.dart';
 
-import '../klondike_game.dart';
+import '../blackjack_game.dart';
 import 'card.dart';
-import 'waste.dart';
+import 'table_pile.dart';
+import 'discard_pile.dart';
 
-class StockPile extends PositionComponent
-    with HasGameReference<KlondikeGame>
+class DrawPile extends PositionComponent
+    with HasGameReference<BlackJackGame>
     implements Pile {
-  StockPile({super.position})
-      : super(size: KlondikeGame.cardSize);
+  DrawPile({super.position})
+      : super(size: BlackJackGame.cardSize);
 
   /// Which cards are currently placed onto this pile. The first card in the
   /// list is at the bottom, the last card is on top.
@@ -47,24 +48,31 @@ class StockPile extends PositionComponent
   //#endregion
 
   void handleTapUp(Card card) {
-    final wastePile = parent!.firstChild<WastePile>()!;
+    hitCard(card);
+  }
+
+  void hitCard(Card card) {
+    final tablePile = parent!.firstChild<TablePile>()!;
+    final discardPile = parent!.firstChild<DiscardPile>()!;
+    // if empty, put all cards from discard in random order
     if (_cards.isEmpty) {
       assert(card.isBaseCard,
-          'Stock Pile is empty, but no Base Card present');
+          'Draw Pile is empty, but no Base Card present');
       card.position =
           position; // Force Base Card (back) into correct position.
-      wastePile.removeAllCards().reversed.forEach((card) {
+      discardPile.removeAllCards().forEach((card) {
         card.flip();
         acquireCard(card);
       });
     } else {
-      for (var i = 0; i < game.klondikeDraw; i++) {
+      // else put a card from draw to table
+      for (var i = 0; i < game.blackjackDraw; i++) {
         if (_cards.isNotEmpty) {
           final card = _cards.removeLast();
           card.doMoveAndFlip(
-            wastePile.position,
+            tablePile.position,
             whenDone: () {
-              wastePile.acquireCard(card);
+              tablePile.acquireCard(card);
             },
           );
         }
@@ -85,10 +93,10 @@ class StockPile extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRRect(KlondikeGame.cardRRect, _borderPaint);
+    canvas.drawRRect(BlackJackGame.cardRRect, _borderPaint);
     canvas.drawCircle(
       Offset(width / 2, height / 2),
-      KlondikeGame.cardWidth * 0.3,
+      BlackJackGame.cardWidth * 0.3,
       _circlePaint,
     );
   }

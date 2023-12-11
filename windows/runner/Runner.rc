@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "klondike" "\0"
+            VALUE "FileDescription", "blackjack" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "klondike" "\0"
+            VALUE "InternalName", "blackjack" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "klondike.exe" "\0"
-            VALUE "ProductName", "klondike" "\0"
+            VALUE "OriginalFilename", "blackjack.exe" "\0"
+            VALUE "ProductName", "blackjack" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
