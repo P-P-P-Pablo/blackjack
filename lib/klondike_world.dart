@@ -62,12 +62,19 @@ class KlondikeWorld extends World
     baseCard.pile = stock;
     stock.priority = -2;
 
-    for (var rank = 1; rank <= 13; rank++) {
+    // adding Numbers and Faces
+    for (var rank = 7; rank <= 13; rank++) {
       for (var suit = 0; suit < 4; suit++) {
         final card = Card(rank, suit);
         card.position = stock.position;
         cards.add(card);
       }
+    }
+    // adding Aces
+    for (var suit = 0; suit < 4; suit++) {
+      final card = Card(1, suit);
+      card.position = stock.position;
+      cards.add(card);
     }
 
     add(stock);
@@ -118,8 +125,8 @@ class KlondikeWorld extends World
   }
 
   void deal() {
-    assert(cards.length == 52,
-        'There are ${cards.length} cards: should be 52');
+    assert(cards.length == 32,
+        'There are ${cards.length} cards: should be 32');
 
     if (game.action != Action.sameDeal) {
       // New deal: change the Random Number Generator's seed.
