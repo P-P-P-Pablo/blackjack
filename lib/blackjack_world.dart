@@ -14,9 +14,6 @@ import 'components/table_pile.dart';
 
 class BlackJackWorld extends World
     with HasGameReference<BlackJackGame> {
-  @override
-  bool get debugMode => true;
-
   final cardGap = BlackJackGame.cardGap;
   final borderGap = BlackJackGame.borderGap;
   final cardSpaceWidth = BlackJackGame.cardSpaceWidth;
@@ -36,62 +33,33 @@ class BlackJackWorld extends World
       DiscardPile(position: Vector2(0.0, 0.0));
   final List<Card> cards = [];
   final List<Card> opponentCards = [];
-  late Vector2 playAreaSize;
+  final Vector2 playAreaSize = Vector2(7200, 12800);
 
   @override
   Future<void> onLoad() async {
     await Flame.images.load('klondike-sprites.png');
 
-    draw.position =
-        Vector2(borderGap, game.camera.viewport.size.y);
-    /*
-
-    ***********************************
-    TODO: position for each pile
+    //#region Position
 
     draw.position = Vector2(
-        cardGap, (game.size.y - borderGap - cardHeight));
-     opponentDraw.position = Vector2(cardGap, borderGap);
+        borderGap, playAreaSize.y - cardHeight - borderGap);
+
+    opponentDraw.position =
+        Vector2(borderGap, borderGap + 300);
 
     table.position = Vector2(
-        (game.size.x / 2 - borderGap - cardWidth),
-        (2 * game.size.y / 3 - borderGap - cardHeight));
+        (playAreaSize.x / 2 - borderGap - cardWidth),
+        (2 * playAreaSize.y / 3 - borderGap));
     opponentTable.position = Vector2(
-        (game.size.x / 2 - borderGap - cardWidth),
-        (game.size.y / 3 - borderGap - cardHeight));
+        (playAreaSize.x / 2 + borderGap + cardWidth),
+        (playAreaSize.y / 3 + borderGap));
 
     discard.position = Vector2(
-        (game.size.x - borderGap - cardWidth),
-        (game.size.y - borderGap - cardHeight));
+        (playAreaSize.x - borderGap - cardWidth),
+        (playAreaSize.y - borderGap - cardHeight));
     opponentDiscard.position = Vector2(
-        (game.size.x - borderGap - cardWidth), borderGap); 
-        
-        ********************************
-    
-    stock.position = Vector2(cardGap, borderGap);
-    waste.position =
-        Vector2(cardSpaceWidth + cardGap, borderGap);
-
-     for (var i = 0; i < 4; i++) {
-      foundations.add(
-        FoundationPile(
-          i,
-          checkWin,
-          position: Vector2(
-              (i + 3) * cardSpaceWidth + cardGap, borderGap),
-        ),
-      );
-    }
-    for (var i = 0; i < 7; i++) {
-      tableauPiles.add(
-        TableauPile(
-          position: Vector2(
-            i * cardSpaceWidth + cardGap,
-            cardSpaceHeight + borderGap,
-          ),
-        ),
-      );
-    } */
+        (playAreaSize.x - borderGap - cardWidth),
+        borderGap + 300);
 
     // Add a Base Card to the Stock Pile, above the pile and below other cards.
     final baseCard = Card(1, 0, isBaseCard: true);
@@ -106,6 +74,19 @@ class BlackJackWorld extends World
     opponentBaseCard.pile = draw;
     opponentDraw.priority = -2;
 
+    addButton(
+        'Hit',
+        Vector2(playAreaSize.x / 2 + 800,
+            playAreaSize.y - 4 * borderGap),
+        Action.newDeal);
+    addButton(
+        'Stand',
+        Vector2(playAreaSize.x / 2 - 800,
+            playAreaSize.y - 4 * borderGap),
+        Action.sameDeal);
+
+    //#endregion
+
     addCardsToPile(cards, draw);
     addCardsToPile(opponentCards, opponentDraw);
 
@@ -119,19 +100,9 @@ class BlackJackWorld extends World
     add(opponentDiscard);
     addAll(opponentCards);
     add(opponentBaseCard);
-
-    playAreaSize = Vector2(7 * cardSpaceWidth + cardGap,
-        4 * cardSpaceHeight + borderGap);
     final gameMidX = playAreaSize.x / 2;
 
-    /*  addButton('New deal', gameMidX, Action.newDeal);
-    addButton('Same deal', gameMidX + cardSpaceWidth,
-        Action.sameDeal);
-    addButton('Have fun', gameMidX + 3 * cardSpaceWidth,
-        Action.haveFun); */
     final camera = game.camera;
-    /* camera.viewport = FixedResolutionViewport(
-        resolution: Vector2(720, 1280)); */
     camera.viewfinder.visibleGameSize = playAreaSize;
     camera.viewfinder.position = Vector2(gameMidX, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
@@ -139,21 +110,20 @@ class BlackJackWorld extends World
   }
 
   void addButton(
-      String label, double buttonX, Action action) {
+      String label, Vector2 position, Action action) {
     final button = FlatButton(
       label,
-      size:
-          Vector2(BlackJackGame.cardWidth, 0.6 * borderGap),
-      position: Vector2(buttonX, borderGap / 2),
+      size: Vector2(BlackJackGame.cardWidth, borderGap),
+      position: position,
       onReleased: () {
-        if (action == Action.haveFun) {
+        /* if (action == Action.haveFun) {
           // Shortcut to the "win" sequence, for Tutorial purposes only.
           letsCelebrate();
         } else {
           // Restart with a new deal or the same deal as before.
           game.action = action;
           game.world = BlackJackWorld();
-        }
+        } */
       },
     );
     add(button);
