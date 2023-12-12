@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 
@@ -78,12 +77,12 @@ class BlackJackWorld extends World
         'Hit',
         Vector2(playAreaSize.x / 2 + 800,
             playAreaSize.y - 4 * borderGap),
-        Action.newDeal);
+        Action.hit);
     addButton(
         'Stand',
         Vector2(playAreaSize.x / 2 - 800,
             playAreaSize.y - 4 * borderGap),
-        Action.sameDeal);
+        Action.stand);
 
     //#endregion
 
@@ -106,7 +105,7 @@ class BlackJackWorld extends World
     camera.viewfinder.visibleGameSize = playAreaSize;
     camera.viewfinder.position = Vector2(gameMidX, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
-    deal();
+    //deal();
   }
 
   void addButton(
@@ -116,20 +115,14 @@ class BlackJackWorld extends World
       size: Vector2(BlackJackGame.cardWidth, borderGap),
       position: position,
       onReleased: () {
-        /* if (action == Action.haveFun) {
-          // Shortcut to the "win" sequence, for Tutorial purposes only.
-          letsCelebrate();
-        } else {
-          // Restart with a new deal or the same deal as before.
-          game.action = action;
-          game.world = BlackJackWorld();
-        } */
+        if (action == Action.hit) {
+        } else if (action == Action.stand) {}
       },
     );
     add(button);
   }
 
-  void deal() {
+  void deal(List<Card> cards, DrawPile draw) {
     assert(cards.length == 32,
         'There are ${cards.length} cards: should be 32');
 
@@ -147,9 +140,9 @@ class BlackJackWorld extends World
     }
 
     // Change priority as cards take off: so later cards fly above earlier ones.
-    var cardToDeal = cards.length - 1;
-    /* var nMovingCards = 0;
-     for (var i = 0; i < 7; i++) {
+    /* var cardToDeal = cards.length - 1;
+    var nMovingCards = 0;
+    for (var i = 0; i < 7; i++) {
       for (var j = i; j < 7; j++) {
         final card = cards[cardToDeal--];
         card.doMove(
@@ -172,10 +165,10 @@ class BlackJackWorld extends World
         );
         nMovingCards++;
       }
-    } */
+    }
     for (var n = 0; n <= cardToDeal; n++) {
       draw.acquireCard(cards[n]);
-    }
+    } */
   }
 
   /* void checkWin() {
