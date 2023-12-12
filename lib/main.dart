@@ -1,9 +1,9 @@
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
 
-import 'klondike_game.dart';
+import 'blackjack_game.dart';
 
 void main() {
-  final game = KlondikeGame();
+  final game = BlackJackGame();
   runApp(GameWidget(game: game));
 }

@@ -10,16 +10,18 @@ class FlatButton extends ButtonComponent {
     super.onReleased,
     super.position,
   }) : super(
-          button: ButtonBackground(const Color(0xffece8a3)),
-          buttonDown: ButtonBackground(Colors.red),
+          button: ButtonBackground(Colors.blueGrey,
+              Colors.white.withOpacity(0.2)),
+          buttonDown: ButtonBackground(
+              Colors.amber, Colors.white.withOpacity(0.6)),
           children: [
             TextComponent(
               text: text,
               textRenderer: TextPaint(
                 style: TextStyle(
-                  fontSize: 0.5 * size!.y,
+                  fontSize: 0.7 * size!.y,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xffdbaf58),
+                  color: Colors.amber,
                 ),
               ),
               position: size / 2.0,
@@ -32,12 +34,14 @@ class FlatButton extends ButtonComponent {
 
 class ButtonBackground extends PositionComponent
     with HasAncestor<FlatButton> {
-  final _paint = Paint()..style = PaintingStyle.stroke;
+  final borderPaint = Paint()..style = PaintingStyle.stroke;
+  final bodyPaint = Paint()..style = PaintingStyle.fill;
 
   late double cornerRadius;
 
-  ButtonBackground(Color color) {
-    _paint.color = color;
+  ButtonBackground(Color borderColor, Color bodyColor) {
+    borderPaint.color = borderColor;
+    bodyPaint.color = bodyColor;
   }
 
   @override
@@ -45,16 +49,17 @@ class ButtonBackground extends PositionComponent
     super.onMount();
     size = ancestor.size;
     cornerRadius = 0.3 * size.y;
-    _paint.strokeWidth = 0.05 * size.y;
+    borderPaint.strokeWidth = 0.05 * size.y;
   }
 
-  late final _background = RRect.fromRectAndRadius(
+  late final buttonForm = RRect.fromRectAndRadius(
     size.toRect(),
     Radius.circular(cornerRadius),
   );
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRRect(_background, _paint);
+    canvas.drawRRect(buttonForm, bodyPaint);
+    canvas.drawRRect(buttonForm, borderPaint);
   }
 }

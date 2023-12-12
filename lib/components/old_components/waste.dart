@@ -1,18 +1,18 @@
-import 'package:flame/components.dart';
-import 'package:klondike/models/pile.dart';
+/* import 'package:flame/components.dart';
+import 'package:blackjack/models/pile.dart';
 
-import '../klondike_game.dart';
+import '../blackjack_game.dart';
 import 'card.dart';
 
 class WastePile extends PositionComponent
-    with HasGameReference<KlondikeGame>
+    with HasGameReference<BlackJackGame>
     implements Pile {
   WastePile({super.position})
-      : super(size: KlondikeGame.cardSize);
+      : super(size: BlackJackGame.cardSize);
 
   final List<Card> _cards = [];
   final Vector2 _fanOffset =
-      Vector2(KlondikeGame.cardWidth * 0.2, 0);
+      Vector2(BlackJackGame.cardWidth * 0.2, 0);
 
   //#region Pile API
 
@@ -56,8 +56,8 @@ class WastePile extends PositionComponent
   }
 
   void _fanOutTopCards() {
-    if (game.klondikeDraw == 1) {
-      // No fan-out in Klondike Draw 1.
+    if (game.blackjackDraw == 1) {
+      // No fan-out in BlackJack Draw 1.
       return;
     }
     final n = _cards.length;
@@ -72,3 +72,4 @@ class WastePile extends PositionComponent
     }
   }
 }
+ */

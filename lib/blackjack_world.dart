@@ -1,133 +1,141 @@
 import 'dart:math';
 
+import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 
 import 'components/card.dart';
-import 'components/flat_button.dart';
-import 'components/foundation.dart';
-import 'components/stock.dart';
-import 'components/tableau_pile.dart';
-import 'components/waste.dart';
+import 'components/discard_pile.dart';
+import 'components/draw_pile.dart';
+import 'components/old_components/flat_button.dart';
 
-import 'klondike_game.dart';
+import 'blackjack_game.dart';
+import 'components/table_pile.dart';
 
-class KlondikeWorld extends World
-    with HasGameReference<KlondikeGame> {
-  final cardGap = KlondikeGame.cardGap;
-  final topGap = KlondikeGame.topGap;
-  final cardSpaceWidth = KlondikeGame.cardSpaceWidth;
-  final cardSpaceHeight = KlondikeGame.cardSpaceHeight;
+class BlackJackWorld extends World
+    with HasGameReference<BlackJackGame> {
+  final cardGap = BlackJackGame.cardGap;
+  final borderGap = BlackJackGame.borderGap;
+  final cardSpaceWidth = BlackJackGame.cardSpaceWidth;
+  final cardSpaceHeight = BlackJackGame.cardSpaceHeight;
 
-  final stock = StockPile(position: Vector2(0.0, 0.0));
-  final waste = WastePile(position: Vector2(0.0, 0.0));
-  final List<FoundationPile> foundations = [];
-  final List<TableauPile> tableauPiles = [];
+  final cardWidth = BlackJackGame.cardWidth;
+  final cardHeight = BlackJackGame.cardHeight;
+
+  final draw = DrawPile(position: Vector2(0.0, 0.0));
+  final table = TablePile(position: Vector2(0.0, 0.0));
+  final discard = DiscardPile(position: Vector2(0.0, 0.0));
+  final opponentDraw =
+      DrawPile(position: Vector2(0.0, 0.0));
+  final opponentTable =
+      TablePile(position: Vector2(0.0, 0.0));
+  final opponentDiscard =
+      DiscardPile(position: Vector2(0.0, 0.0));
   final List<Card> cards = [];
-  late Vector2 playAreaSize;
+  final List<Card> opponentCards = [];
+  final Vector2 playAreaSize = Vector2(7200, 12800);
 
   @override
   Future<void> onLoad() async {
     await Flame.images.load('klondike-sprites.png');
 
-    stock.position = Vector2(cardGap, topGap);
-    waste.position =
-        Vector2(cardSpaceWidth + cardGap, topGap);
+    //#region Position
 
-    for (var i = 0; i < 4; i++) {
-      foundations.add(
-        FoundationPile(
-          i,
-          checkWin,
-          position: Vector2(
-              (i + 3) * cardSpaceWidth + cardGap, topGap),
-        ),
-      );
-    }
-    for (var i = 0; i < 7; i++) {
-      tableauPiles.add(
-        TableauPile(
-          position: Vector2(
-            i * cardSpaceWidth + cardGap,
-            cardSpaceHeight + topGap,
-          ),
-        ),
-      );
-    }
+    draw.position = Vector2(
+        borderGap, playAreaSize.y - cardHeight - borderGap);
+
+    opponentDraw.position =
+        Vector2(borderGap, borderGap + 300);
+
+    table.position = Vector2(
+        (playAreaSize.x / 2 - borderGap - cardWidth),
+        (2 * playAreaSize.y / 3 - borderGap));
+    opponentTable.position = Vector2(
+        (playAreaSize.x / 2 + borderGap + cardWidth),
+        (playAreaSize.y / 3 + borderGap));
+
+    discard.position = Vector2(
+        (playAreaSize.x - borderGap - cardWidth),
+        (playAreaSize.y - borderGap - cardHeight));
+    opponentDiscard.position = Vector2(
+        (playAreaSize.x - borderGap - cardWidth),
+        borderGap + 300);
 
     // Add a Base Card to the Stock Pile, above the pile and below other cards.
     final baseCard = Card(1, 0, isBaseCard: true);
-    baseCard.position = stock.position;
+    baseCard.position = draw.position;
     baseCard.priority = -1;
-    baseCard.pile = stock;
-    stock.priority = -2;
+    baseCard.pile = draw;
+    draw.priority = -2;
 
-    for (var rank = 1; rank <= 13; rank++) {
-      for (var suit = 0; suit < 4; suit++) {
-        final card = Card(rank, suit);
-        card.position = stock.position;
-        cards.add(card);
-      }
-    }
+    final opponentBaseCard = Card(1, 0, isBaseCard: true);
+    opponentBaseCard.position = draw.position;
+    opponentBaseCard.priority = -1;
+    opponentBaseCard.pile = draw;
+    opponentDraw.priority = -2;
 
-    add(stock);
-    add(waste);
-    addAll(foundations);
-    addAll(tableauPiles);
+    addButton(
+        'Hit',
+        Vector2(playAreaSize.x / 2 + 800,
+            playAreaSize.y - 4 * borderGap),
+        Action.newDeal);
+    addButton(
+        'Stand',
+        Vector2(playAreaSize.x / 2 - 800,
+            playAreaSize.y - 4 * borderGap),
+        Action.sameDeal);
+
+    //#endregion
+
+    addCardsToPile(cards, draw);
+    addCardsToPile(opponentCards, opponentDraw);
+
+    add(draw);
+    add(table);
+    add(discard);
     addAll(cards);
     add(baseCard);
-
-    playAreaSize = Vector2(7 * cardSpaceWidth + cardGap,
-        4 * cardSpaceHeight + topGap);
+    add(opponentDraw);
+    add(opponentTable);
+    add(opponentDiscard);
+    addAll(opponentCards);
+    add(opponentBaseCard);
     final gameMidX = playAreaSize.x / 2;
-
-    addButton('New deal', gameMidX, Action.newDeal);
-    addButton('Same deal', gameMidX + cardSpaceWidth,
-        Action.sameDeal);
-    addButton('Draw 1 or 3', gameMidX + 2 * cardSpaceWidth,
-        Action.changeDraw);
-    addButton('Have fun', gameMidX + 3 * cardSpaceWidth,
-        Action.haveFun);
 
     final camera = game.camera;
     camera.viewfinder.visibleGameSize = playAreaSize;
     camera.viewfinder.position = Vector2(gameMidX, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
-
     deal();
   }
 
   void addButton(
-      String label, double buttonX, Action action) {
+      String label, Vector2 position, Action action) {
     final button = FlatButton(
       label,
-      size: Vector2(KlondikeGame.cardWidth, 0.6 * topGap),
-      position: Vector2(buttonX, topGap / 2),
+      size: Vector2(BlackJackGame.cardWidth, borderGap),
+      position: position,
       onReleased: () {
-        if (action == Action.haveFun) {
+        /* if (action == Action.haveFun) {
           // Shortcut to the "win" sequence, for Tutorial purposes only.
           letsCelebrate();
         } else {
           // Restart with a new deal or the same deal as before.
           game.action = action;
-          game.world = KlondikeWorld();
-        }
+          game.world = BlackJackWorld();
+        } */
       },
     );
     add(button);
   }
 
   void deal() {
-    assert(cards.length == 52,
-        'There are ${cards.length} cards: should be 52');
+    assert(cards.length == 32,
+        'There are ${cards.length} cards: should be 32');
 
     if (game.action != Action.sameDeal) {
       // New deal: change the Random Number Generator's seed.
-      game.seed = Random().nextInt(KlondikeGame.maxInt);
-      if (game.action == Action.changeDraw) {
-        game.klondikeDraw =
-            (game.klondikeDraw == 3) ? 1 : 3;
-      }
+      game.seed = Random().nextInt(BlackJackGame.maxInt);
     }
     // For the "Same deal" option, re-use the previous seed, else use a new one.
     cards.shuffle(Random(game.seed));
@@ -140,8 +148,8 @@ class KlondikeWorld extends World
 
     // Change priority as cards take off: so later cards fly above earlier ones.
     var cardToDeal = cards.length - 1;
-    var nMovingCards = 0;
-    for (var i = 0; i < 7; i++) {
+    /* var nMovingCards = 0;
+     for (var i = 0; i < 7; i++) {
       for (var j = i; j < 7; j++) {
         final card = cards[cardToDeal--];
         card.doMove(
@@ -164,13 +172,13 @@ class KlondikeWorld extends World
         );
         nMovingCards++;
       }
-    }
+    } */
     for (var n = 0; n <= cardToDeal; n++) {
-      stock.acquireCard(cards[n]);
+      draw.acquireCard(cards[n]);
     }
   }
 
-  void checkWin() {
+  /* void checkWin() {
     // Callback from a Foundation Pile when it is full (Ace to King).
     var nComplete = 0;
     for (final f in foundations) {
@@ -181,7 +189,7 @@ class KlondikeWorld extends World
     if (nComplete == foundations.length) {
       letsCelebrate();
     }
-  }
+  } */
 
   void letsCelebrate({int phase = 1}) {
     // Deal won: bring all cards to the middle of the screen (phase 1)
@@ -194,17 +202,17 @@ class KlondikeWorld extends World
     final cameraZoom = game.camera.viewfinder.zoom;
     final zoomedScreen = game.size / cameraZoom;
     final screenCenter =
-        (playAreaSize - KlondikeGame.cardSize) / 2;
+        (playAreaSize - BlackJackGame.cardSize) / 2;
     final topLeft = Vector2(
       (playAreaSize.x - zoomedScreen.x) / 2 -
-          KlondikeGame.cardWidth,
-      -KlondikeGame.cardHeight,
+          BlackJackGame.cardWidth,
+      -BlackJackGame.cardHeight,
     );
     final nCards = cards.length;
     final offscreenHeight =
-        zoomedScreen.y + KlondikeGame.cardSize.y;
+        zoomedScreen.y + BlackJackGame.cardSize.y;
     final offscreenWidth =
-        zoomedScreen.x + KlondikeGame.cardSize.x;
+        zoomedScreen.x + BlackJackGame.cardSize.x;
     final spacing =
         2.0 * (offscreenHeight + offscreenWidth) / nCards;
 
@@ -260,7 +268,7 @@ class KlondikeWorld extends World
             } else {
               // Restart with a new deal after winning or pressing "Have fun".
               game.action = Action.newDeal;
-              game.world = KlondikeWorld();
+              game.world = BlackJackWorld();
             }
           }
         },
@@ -282,6 +290,23 @@ class KlondikeWorld extends World
             direction[side] * space;
         space = length[side] + space;
       }
+    }
+  }
+
+  void addCardsToPile(List<Card> cards, DrawPile pile) {
+    // adding Numbers and Faces
+    for (var rank = 7; rank <= 13; rank++) {
+      for (var suit = 0; suit < 4; suit++) {
+        final card = Card(rank, suit);
+        card.position = pile.position;
+        cards.add(card);
+      }
+    }
+    // adding Aces
+    for (var suit = 0; suit < 4; suit++) {
+      final card = Card(1, suit);
+      card.position = pile.position;
+      cards.add(card);
     }
   }
 }

@@ -1,16 +1,18 @@
-import 'dart:ui';
-
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
 
-import 'klondike_world.dart';
+import 'blackjack_world.dart';
 
-enum Action { newDeal, sameDeal, changeDraw, haveFun }
+enum Action { newDeal, sameDeal, haveFun }
 
-class KlondikeGame extends FlameGame<KlondikeWorld> {
+class BlackJackGame extends FlameGame<BlackJackWorld> {
+  @override
+  Color backgroundColor() => Colors.grey;
+
   static const double cardGap = 175.0;
-  static const double topGap = 500.0;
+  static const double borderGap = 300.0;
   static const double cardWidth = 1000.0;
   static const double cardHeight = 1400.0;
   static const double cardRadius = 100.0;
@@ -31,19 +33,19 @@ class KlondikeGame extends FlameGame<KlondikeWorld> {
   static const int maxInt =
       0xFFFFFFFE; // = (2 to the power 32) - 1
 
-  // This KlondikeGame constructor also initiates the first KlondikeWorld.
-  KlondikeGame() : super(world: KlondikeWorld());
+  // This BlackJackGame constructor also initiates the first BlackJackWorld.
+  BlackJackGame() : super(world: BlackJackWorld());
 
   // These three values persist between games and are starting conditions
-  // for the next game to be played in KlondikeWorld. The actual seed is
-  // computed in KlondikeWorld but is held here in case the player chooses
+  // for the next game to be played in BlackJackWorld. The actual seed is
+  // computed in BlackJackWorld but is held here in case the player chooses
   // to replay a game by selecting Action.sameDeal.
-  int klondikeDraw = 1;
+  int blackjackDraw = 1;
   int seed = 1;
   Action action = Action.newDeal;
 }
 
-Sprite klondikeSprite(
+Sprite blackjackSprite(
     double x, double y, double width, double height) {
   return Sprite(
     Flame.images.fromCache('klondike-sprites.png'),
