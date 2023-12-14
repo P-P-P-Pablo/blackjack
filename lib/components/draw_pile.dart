@@ -6,8 +6,6 @@ import 'package:blackjack/models/pile.dart';
 import '../blackjack_game.dart';
 import '../models/player.dart';
 import 'card.dart';
-import 'table_pile.dart';
-import 'discard_pile.dart';
 
 class DrawPile extends PositionComponent
     with HasGameReference<BlackJackGame>

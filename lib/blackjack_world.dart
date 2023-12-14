@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:blackjack/models/player.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
+import 'package:flutter/painting.dart';
 
 import 'components/card.dart';
 import 'components/discard_pile.dart';
@@ -22,8 +23,8 @@ class BlackJackWorld extends World
   final cardWidth = BlackJackGame.cardWidth;
   final cardHeight = BlackJackGame.cardHeight;
 
-  Player player = Player();
-  Player opponent = Player();
+  final Player player = Player();
+  final Player opponent = Player();
 
   final draw = DrawPile(position: Vector2(0.0, 0.0));
   final table = TablePile(position: Vector2(0.0, 0.0));
@@ -37,6 +38,15 @@ class BlackJackWorld extends World
   final List<Card> cards = [];
   final List<Card> opponentCards = [];
   final Vector2 playAreaSize = Vector2(7200, 12800);
+
+  late TextComponent playerScore;
+  late TextComponent opponentScore;
+  final scoreRenderer = TextPaint(
+      style: const TextStyle(
+    fontSize: 400,
+    fontWeight: FontWeight.bold,
+    color: Color(0xffdbaf58),
+  ));
 
   @override
   Future<void> onLoad() async {
@@ -90,6 +100,8 @@ class BlackJackWorld extends World
 
     //#endregion
 
+    //#region Gameplay Components
+
     addCardsToPile(cards, draw);
     addCardsToPile(opponentCards, opponentDraw);
 
@@ -118,6 +130,41 @@ class BlackJackWorld extends World
     camera.viewfinder.anchor = Anchor.topCenter;
     deal(cards, draw);
     deal(opponentCards, opponentDraw);
+
+    //#endregion
+
+    playerScore = TextComponent(
+      text: '${player.getScore()} / ${player.maxScore}',
+      textRenderer: scoreRenderer,
+      anchor: Anchor.topCenter,
+      position: Vector2(
+          playAreaSize.x / 2,
+          playAreaSize.y -
+              BlackJackGame.cardHeight -
+              BlackJackGame.borderGap * 2),
+    );
+
+    opponentScore = TextComponent(
+      text: '${opponent.getScore()} / ${opponent.maxScore}',
+      textRenderer: scoreRenderer,
+      anchor: Anchor.topCenter,
+      position: Vector2(
+          playAreaSize.x / 2,
+          BlackJackGame.cardHeight +
+              BlackJackGame.borderGap * 2),
+    );
+
+    add(playerScore);
+    add(opponentScore);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    playerScore.text =
+        '${player.getScore()} / ${player.maxScore}';
+    opponentScore.text =
+        '${opponent.getScore()} / ${opponent.maxScore}';
   }
 
   void addButton(
