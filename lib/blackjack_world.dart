@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:blackjack/models/player.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 
@@ -20,6 +21,9 @@ class BlackJackWorld extends World
 
   final cardWidth = BlackJackGame.cardWidth;
   final cardHeight = BlackJackGame.cardHeight;
+
+  Player player = Player();
+  Player opponent = Player();
 
   final draw = DrawPile(position: Vector2(0.0, 0.0));
   final table = TablePile(position: Vector2(0.0, 0.0));
@@ -92,13 +96,20 @@ class BlackJackWorld extends World
     add(draw);
     add(table);
     add(discard);
+    player.pileAttribution(draw, discard, table);
     addAll(cards);
     add(baseCard);
+    player.deckAttribution(cards);
+
     add(opponentDraw);
     add(opponentTable);
     add(opponentDiscard);
+    opponent.pileAttribution(
+        opponentDraw, opponentDiscard, opponentTable);
     addAll(opponentCards);
     add(opponentBaseCard);
+    opponent.deckAttribution(opponentCards);
+
     final gameMidX = playAreaSize.x / 2;
 
     final camera = game.camera;

@@ -9,6 +9,7 @@ import 'package:flutter/animation.dart';
 import '../blackjack_game.dart';
 import '../blackjack_world.dart';
 import '../models/pile.dart';
+import '../models/player.dart';
 import '../models/rank.dart';
 import '../models/suit.dart';
 import 'draw_pile.dart';
@@ -31,6 +32,7 @@ class Card extends PositionComponent
   final Rank rank;
   final Suit suit;
   Pile? pile;
+  Player? player;
   // A Base Card is rendered in outline only and is NOT playable. It can be
   // added to the base of a Pile (e.g. the Stock Pile) to allow it to handle
   // taps and short drags (on an empty Pile) with the same behavior and

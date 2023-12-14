@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:blackjack/models/pile.dart';
 
 import '../blackjack_game.dart';
+import '../models/player.dart';
 import 'card.dart';
 
 class TablePile extends PositionComponent
@@ -13,9 +14,13 @@ class TablePile extends PositionComponent
   TablePile({super.position})
       : super(size: BlackJackGame.cardSize);
 
+  Player? player;
+
   final List<Card> _cards = [];
   final Vector2 _fanOffset =
       Vector2(BlackJackGame.cardWidth * 0.2, 0);
+
+  List<Card> get cardsList => _cards;
 
   //#region Pile API
 

@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:blackjack/models/pile.dart';
 
 import '../blackjack_game.dart';
+import '../models/player.dart';
 import 'card.dart';
 import 'table_pile.dart';
 import 'discard_pile.dart';
@@ -16,6 +17,8 @@ class DrawPile extends PositionComponent
 
   DrawPile({super.position})
       : super(size: BlackJackGame.cardSize);
+
+  Player? player;
 
   /// Which cards are currently placed onto this pile. The first card in the
   /// list is at the bottom, the last card is on top.
