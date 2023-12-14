@@ -18,9 +18,11 @@ class TablePile extends PositionComponent
 
   final List<Card> _cards = [];
   final Vector2 _fanOffset =
-      Vector2(BlackJackGame.cardWidth * 0.2, 0);
+      Vector2(0, BlackJackGame.cardWidth * 0.2);
 
   List<Card> get cardsList => _cards;
+
+  get cards => _cards;
 
   //#region Pile API
 
@@ -35,13 +37,13 @@ class TablePile extends PositionComponent
   void removeCard(Card card, MoveMethod method) {
     assert(canMoveCard(card, method));
     _cards.removeLast();
-    _fanOutTopCards();
+    _fanOutCards();
   }
 
   @override
   void returnCard(Card card) {
     card.priority = _cards.indexOf(card);
-    _fanOutTopCards();
+    _fanOutCards();
   }
 
   @override
@@ -51,7 +53,7 @@ class TablePile extends PositionComponent
     card.position = position;
     card.priority = _cards.length;
     _cards.add(card);
-    _fanOutTopCards();
+    _fanOutCards();
   }
 
   //#endregion
@@ -62,20 +64,17 @@ class TablePile extends PositionComponent
     return cards;
   }
 
-  void _fanOutTopCards() {
-    if (game.blackjackDraw == 1) {
-      // No fan-out in BlackJack Draw 1.
+  void _fanOutCards() {
+    if (_cards.isEmpty) {
       return;
     }
-    final n = _cards.length;
-    for (var i = 0; i < n; i++) {
-      _cards[i].position = position;
-    }
-    if (n == 2) {
-      _cards[1].position.add(_fanOffset);
-    } else if (n >= 3) {
-      _cards[n - 2].position.add(_fanOffset);
-      _cards[n - 1].position.addScaled(_fanOffset, 2);
+    _cards[0].position.setFrom(position);
+    _cards[0].priority = 0;
+    for (var i = 1; i < _cards.length; i++) {
+      _cards[i].priority = i;
+      _cards[i].position
+        ..setFrom(_cards[i - 1].position)
+        ..add(_fanOffset);
     }
   }
 }

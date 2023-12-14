@@ -116,7 +116,8 @@ class BlackJackWorld extends World
     camera.viewfinder.visibleGameSize = playAreaSize;
     camera.viewfinder.position = Vector2(gameMidX, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
-    //deal();
+    deal(cards, draw);
+    deal(opponentCards, opponentDraw);
   }
 
   void addButton(
@@ -127,6 +128,10 @@ class BlackJackWorld extends World
       position: position,
       onReleased: () {
         if (action == Action.hit) {
+          draw.hitCard();
+          opponentDraw.hitCard();
+          print(
+              "something happened ${draw.cards} ${table.cards}");
         } else if (action == Action.stand) {}
       },
     );
@@ -148,6 +153,10 @@ class BlackJackWorld extends World
     var dealPriority = 1;
     for (final card in cards) {
       card.priority = dealPriority++;
+    }
+
+    for (var n = 0; n <= cards.length - 1; n++) {
+      draw.acquireCard(cards[n]);
     }
 
     // Change priority as cards take off: so later cards fly above earlier ones.

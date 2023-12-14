@@ -24,6 +24,8 @@ class DrawPile extends PositionComponent
   /// list is at the bottom, the last card is on top.
   final List<Card> _cards = [];
 
+  get cards => _cards;
+
   //#region Pile API
 
   @override
@@ -54,34 +56,35 @@ class DrawPile extends PositionComponent
   //#endregion
 
   void handleTapUp(Card card) {
-    hitCard(card);
+    hitCard();
   }
 
-  void hitCard(Card card) {
-    final tablePile = parent!.firstChild<TablePile>()!;
-    final discardPile = parent!.firstChild<DiscardPile>()!;
+  void hitCard() {
+    final tablePile = player!.tablePile;
+    final discardPile = player!.discardPile;
     // if empty, put all cards from discard in random order
     if (_cards.isEmpty) {
-      assert(card.isBaseCard,
-          'Draw Pile is empty, but no Base Card present');
-      card.position =
-          position; // Force Base Card (back) into correct position.
+      print("is empty");
       discardPile.removeAllCards().forEach((card) {
         card.flip();
         acquireCard(card);
       });
     } else {
       // else put a card from draw to table
-      for (var i = 0; i < game.blackjackDraw; i++) {
-        if (_cards.isNotEmpty) {
-          final card = _cards.removeLast();
-          card.doMoveAndFlip(
-            tablePile.position,
-            whenDone: () {
-              tablePile.acquireCard(card);
-            },
-          );
-        }
+      if (_cards.isNotEmpty) {
+        print("is not empty");
+        final card = _cards.removeLast();
+        card.doMoveAndFlip(
+          Vector2(
+              tablePile.position.x,
+              tablePile.position.y +
+                  (tablePile.cardsList.length *
+                      BlackJackGame.cardWidth *
+                      0.2)),
+          whenDone: () {
+            tablePile.acquireCard(card);
+          },
+        );
       }
     }
   }
