@@ -19,11 +19,11 @@ samples, guidance on mobile development, and a full API reference.
 ### To Do
 
 #### Gameplay
-- [ ] Scores
+- [x] Scores
 - [ ] Rounds
 
 #### Actions
-- [ ] Hit action
+- [x] Hit action
 - [ ] Stand action
 - [ ] New Deal action
 - [ ] Same Deal action 

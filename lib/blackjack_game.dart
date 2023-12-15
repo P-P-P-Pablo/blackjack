@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'blackjack_world.dart';
 
-enum Action { newDeal, sameDeal, hit, stand }
+enum Action { newDeal, sameDeal }
 
 class BlackJackGame extends FlameGame<BlackJackWorld> {
   @override

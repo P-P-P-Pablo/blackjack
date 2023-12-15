@@ -8,7 +8,7 @@ import 'package:flutter/painting.dart';
 import 'components/card.dart';
 import 'components/discard_pile.dart';
 import 'components/draw_pile.dart';
-import 'components/old_components/flat_button.dart';
+import 'components/flat_button.dart';
 
 import 'blackjack_game.dart';
 import 'components/table_pile.dart';
@@ -39,14 +39,17 @@ class BlackJackWorld extends World
   final List<Card> opponentCards = [];
   final Vector2 playAreaSize = Vector2(7200, 12800);
 
-  late TextComponent playerScore;
-  late TextComponent opponentScore;
+  late final TextComponent playerScore;
+  late final TextComponent opponentScore;
   final scoreRenderer = TextPaint(
       style: const TextStyle(
     fontSize: 400,
     fontWeight: FontWeight.bold,
     color: Color(0xffdbaf58),
   ));
+
+  late final FlatButton hitButton;
+  late final FlatButton standButton;
 
   @override
   Future<void> onLoad() async {
@@ -87,16 +90,34 @@ class BlackJackWorld extends World
     opponentBaseCard.pile = draw;
     opponentDraw.priority = -2;
 
-    addButton(
-        'Hit',
-        Vector2(playAreaSize.x / 2 + 800,
-            playAreaSize.y - 4 * borderGap),
-        Action.hit);
-    addButton(
-        'Stand',
-        Vector2(playAreaSize.x / 2 - 800,
-            playAreaSize.y - 4 * borderGap),
-        Action.stand);
+    //#region Buttons
+    hitButton = FlatButton(
+      "HIT",
+      size: Vector2(BlackJackGame.cardWidth, borderGap),
+      position: Vector2(playAreaSize.x / 2 - 800,
+          playAreaSize.y - 4 * borderGap),
+      onPressed: () {
+        if (!hitButton.isDisabled) {
+          draw.hitCard();
+        }
+
+        if (opponent.score < opponent.maxScore) {
+          opponentDraw.hitCard();
+        }
+      },
+    );
+    table.hitButton = hitButton;
+    add(hitButton);
+
+    standButton = FlatButton(
+      "STAND",
+      size: Vector2(BlackJackGame.cardWidth, borderGap),
+      position: Vector2(playAreaSize.x / 2 + 800,
+          playAreaSize.y - 4 * borderGap),
+      onPressed: () {},
+    );
+    add(standButton);
+    //#endregion
 
     //#endregion
 
@@ -134,7 +155,7 @@ class BlackJackWorld extends World
     //#endregion
 
     playerScore = TextComponent(
-      text: '${player.getScore()} / ${player.maxScore}',
+      text: '${player.score} / ${player.maxScore}',
       textRenderer: scoreRenderer,
       anchor: Anchor.topCenter,
       position: Vector2(
@@ -145,7 +166,7 @@ class BlackJackWorld extends World
     );
 
     opponentScore = TextComponent(
-      text: '${opponent.getScore()} / ${opponent.maxScore}',
+      text: '${opponent.score} / ${opponent.maxScore}',
       textRenderer: scoreRenderer,
       anchor: Anchor.topCenter,
       position: Vector2(
@@ -162,27 +183,9 @@ class BlackJackWorld extends World
   void update(double dt) {
     super.update(dt);
     playerScore.text =
-        '${player.getScore()} / ${player.maxScore}';
+        '${player.score} / ${player.maxScore}';
     opponentScore.text =
-        '${opponent.getScore()} / ${opponent.maxScore}';
-  }
-
-  void addButton(
-      String label, Vector2 position, Action action) {
-    final button = FlatButton(
-      label,
-      size: Vector2(BlackJackGame.cardWidth, borderGap),
-      position: position,
-      onReleased: () {
-        if (action == Action.hit) {
-          draw.hitCard();
-          opponentDraw.hitCard();
-          print(
-              "something happened ${draw.cards} ${table.cards}");
-        } else if (action == Action.stand) {}
-      },
-    );
-    add(button);
+        '${opponent.score} / ${opponent.maxScore}';
   }
 
   void deal(List<Card> cards, DrawPile draw) {

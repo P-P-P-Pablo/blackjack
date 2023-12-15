@@ -70,7 +70,6 @@ class DrawPile extends PositionComponent
     } else {
       // else put a card from draw to table
       if (_cards.isNotEmpty) {
-        print("is not empty");
         final card = _cards.removeLast();
         card.doMoveAndFlip(
           Vector2(

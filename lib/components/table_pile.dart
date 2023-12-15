@@ -1,3 +1,4 @@
+import 'package:blackjack/components/flat_button.dart';
 import 'package:flame/components.dart';
 import 'package:blackjack/models/pile.dart';
 
@@ -23,6 +24,10 @@ class TablePile extends PositionComponent
   List<Card> get cardsList => _cards;
 
   get cards => _cards;
+
+  FlatButton? _hitButton;
+  set hitButton(FlatButton hitButton) =>
+      _hitButton = hitButton;
 
   //#region Pile API
 
@@ -54,6 +59,10 @@ class TablePile extends PositionComponent
     card.priority = _cards.length;
     _cards.add(card);
     _fanOutCards();
+    player!.updateScore();
+    if (player!.score >= player!.maxScore) {
+      _hitButton?.isDisabled = true;
+    }
   }
 
   //#endregion

@@ -11,6 +11,7 @@ class Player {
   late DiscardPile discardPile;
   late TablePile tablePile;
   final int maxScore = 21;
+  int score = 0;
 
   void deckAttribution(List<Card> deck) {
     for (var card in deck) {
@@ -30,8 +31,8 @@ class Player {
     table.player = this;
   }
 
-  int getScore() {
-    int score = 0;
+  int updateScore() {
+    score = 0;
     // get a copy of all cards values
     List<int> valuesList = [];
     for (Card card in tablePile.cardsList) {
