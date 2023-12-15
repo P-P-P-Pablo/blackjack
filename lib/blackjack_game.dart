@@ -25,6 +25,7 @@ class BlackJackGame extends FlameGame<BlackJackWorld> {
     const Rect.fromLTWH(0, 0, cardWidth, cardHeight),
     const Radius.circular(cardRadius),
   );
+  static const opponentLimit = 17;
 
   /// Constant used to decide when a short drag is treated as a TapUp event.
   static const double dragTolerance = cardWidth / 5;

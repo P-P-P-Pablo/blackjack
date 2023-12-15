@@ -6,12 +6,13 @@ import '../components/card.dart';
 
 class Player {
   // Declaring instance variable
-  late List<Card> deck;
-  late DrawPile drawPile;
-  late DiscardPile discardPile;
-  late TablePile tablePile;
+  late final List<Card> deck;
+  late final DrawPile drawPile;
+  late final DiscardPile discardPile;
+  late final TablePile tablePile;
   final int maxScore = 21;
   int score = 0;
+  int? limit;
 
   void deckAttribution(List<Card> deck) {
     for (var card in deck) {

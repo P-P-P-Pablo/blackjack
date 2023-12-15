@@ -45,7 +45,7 @@ class BlackJackWorld extends World
       style: const TextStyle(
     fontSize: 400,
     fontWeight: FontWeight.bold,
-    color: Color(0xffdbaf58),
+    color: Color(0xFFDBAF58),
   ));
 
   late final FlatButton hitButton;
@@ -54,6 +54,8 @@ class BlackJackWorld extends World
   @override
   Future<void> onLoad() async {
     await Flame.images.load('klondike-sprites.png');
+
+    opponent.limit = BlackJackGame.opponentLimit;
 
     //#region Position
 
@@ -90,6 +92,8 @@ class BlackJackWorld extends World
     opponentBaseCard.pile = draw;
     opponentDraw.priority = -2;
 
+    //#endregion
+
     //#region Buttons
     hitButton = FlatButton(
       "HIT",
@@ -101,7 +105,8 @@ class BlackJackWorld extends World
           draw.hitCard();
         }
 
-        if (opponent.score < opponent.maxScore) {
+        if (opponent.score < opponent.maxScore &&
+            opponent.score < opponent.limit!) {
           opponentDraw.hitCard();
         }
       },
@@ -114,11 +119,18 @@ class BlackJackWorld extends World
       size: Vector2(BlackJackGame.cardWidth, borderGap),
       position: Vector2(playAreaSize.x / 2 + 800,
           playAreaSize.y - 4 * borderGap),
-      onPressed: () {},
+      onPressed: () {
+        hitButton.isDisabled = true;
+        if (opponent.score < opponent.maxScore &&
+            opponent.score < opponent.limit!) {
+          opponentDraw.hitCard();
+        } else if (opponent.score > opponent.limit! &&
+            hitButton.isDisabled) {
+          endRound();
+        }
+      },
     );
     add(standButton);
-    //#endregion
-
     //#endregion
 
     //#region Gameplay Components
@@ -371,5 +383,51 @@ class BlackJackWorld extends World
       card.position = pile.position;
       cards.add(card);
     }
+  }
+
+  void endRound() {
+    String endResult;
+    Color color;
+
+    if (player.score == opponent.score) {
+      endResult = "It's a draw !";
+      color = const Color(0xFF000000);
+    } else if (player.score < opponent.score &&
+        opponent.score <= opponent.maxScore) {
+      endResult =
+          "You lose by ${opponent.score - player.score} points !";
+      color = const Color(0xFFC40A0A);
+    } else if (player.score > player.maxScore) {
+      endResult = "You drew too many cards !";
+      color = const Color(0xFFC40A0A);
+    } else if (player.score > opponent.score &&
+        player.score <= player.maxScore) {
+      endResult =
+          "You won by ${player.score - opponent.score} points !";
+      color = const Color(0xFF1A5105);
+    } else if (opponent.score > opponent.maxScore) {
+      endResult = "Your opponent drew too many cards !";
+      color = const Color(0xFF1A5105);
+    } else {
+      endResult = "How did you get that result ?";
+      color = const Color(0xFF000000);
+    }
+    add(
+      TextComponent(
+        priority: 100,
+        //boxConfig: TextBoxConfig(timePerChar: 0.05),
+        text: endResult,
+        textRenderer: TextPaint(
+          style: TextStyle(
+            fontSize: 0.05 * playAreaSize.y,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        position:
+            Vector2(playAreaSize.x / 2, playAreaSize.y / 2),
+        anchor: Anchor.center,
+      ),
+    );
   }
 }
