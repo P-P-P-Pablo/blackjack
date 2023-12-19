@@ -1,13 +1,14 @@
 import 'dart:math';
 
-import 'package:flame/camera.dart';
+import 'package:blackjack/models/player.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
+import 'package:flutter/painting.dart';
 
 import 'components/card.dart';
 import 'components/discard_pile.dart';
 import 'components/draw_pile.dart';
-import 'components/old_components/flat_button.dart';
+import 'components/flat_button.dart';
 
 import 'blackjack_game.dart';
 import 'components/table_pile.dart';
@@ -22,6 +23,9 @@ class BlackJackWorld extends World
   final cardWidth = BlackJackGame.cardWidth;
   final cardHeight = BlackJackGame.cardHeight;
 
+  final Player player = Player();
+  final Player opponent = Player();
+
   final draw = DrawPile(position: Vector2(0.0, 0.0));
   final table = TablePile(position: Vector2(0.0, 0.0));
   final discard = DiscardPile(position: Vector2(0.0, 0.0));
@@ -35,9 +39,23 @@ class BlackJackWorld extends World
   final List<Card> opponentCards = [];
   final Vector2 playAreaSize = Vector2(7200, 12800);
 
+  late final TextComponent playerScore;
+  late final TextComponent opponentScore;
+  final scoreRenderer = TextPaint(
+      style: const TextStyle(
+    fontSize: 400,
+    fontWeight: FontWeight.bold,
+    color: Color(0xFFDBAF58),
+  ));
+
+  late final FlatButton hitButton;
+  late final FlatButton standButton;
+
   @override
   Future<void> onLoad() async {
     await Flame.images.load('klondike-sprites.png');
+
+    opponent.limit = BlackJackGame.opponentLimit;
 
     //#region Position
 
@@ -74,18 +92,48 @@ class BlackJackWorld extends World
     opponentBaseCard.pile = draw;
     opponentDraw.priority = -2;
 
-    addButton(
-        'Hit',
-        Vector2(playAreaSize.x / 2 + 800,
-            playAreaSize.y - 4 * borderGap),
-        Action.newDeal);
-    addButton(
-        'Stand',
-        Vector2(playAreaSize.x / 2 - 800,
-            playAreaSize.y - 4 * borderGap),
-        Action.sameDeal);
-
     //#endregion
+
+    //#region Buttons
+    hitButton = FlatButton(
+      "HIT",
+      size: Vector2(BlackJackGame.cardWidth, borderGap),
+      position: Vector2(playAreaSize.x / 2 - 800,
+          playAreaSize.y - 4 * borderGap),
+      onPressed: () {
+        if (!hitButton.isDisabled) {
+          draw.hitCard();
+        }
+
+        if (opponent.score < opponent.maxScore &&
+            opponent.score < opponent.limit!) {
+          opponentDraw.hitCard();
+        }
+      },
+    );
+    table.hitButton = hitButton;
+    add(hitButton);
+
+    standButton = FlatButton(
+      "STAND",
+      size: Vector2(BlackJackGame.cardWidth, borderGap),
+      position: Vector2(playAreaSize.x / 2 + 800,
+          playAreaSize.y - 4 * borderGap),
+      onPressed: () {
+        hitButton.isDisabled = true;
+        if (opponent.score < opponent.maxScore &&
+            opponent.score < opponent.limit!) {
+          opponentDraw.hitCard();
+        } else if (opponent.score > opponent.limit! &&
+            hitButton.isDisabled) {
+          endRound();
+        }
+      },
+    );
+    add(standButton);
+    //#endregion
+
+    //#region Gameplay Components
 
     addCardsToPile(cards, draw);
     addCardsToPile(opponentCards, opponentDraw);
@@ -93,43 +141,66 @@ class BlackJackWorld extends World
     add(draw);
     add(table);
     add(discard);
+    player.pileAttribution(draw, discard, table);
     addAll(cards);
     add(baseCard);
+    player.deckAttribution(cards);
+
     add(opponentDraw);
     add(opponentTable);
     add(opponentDiscard);
+    opponent.pileAttribution(
+        opponentDraw, opponentDiscard, opponentTable);
     addAll(opponentCards);
     add(opponentBaseCard);
+    opponent.deckAttribution(opponentCards);
+
     final gameMidX = playAreaSize.x / 2;
 
     final camera = game.camera;
     camera.viewfinder.visibleGameSize = playAreaSize;
     camera.viewfinder.position = Vector2(gameMidX, 0);
     camera.viewfinder.anchor = Anchor.topCenter;
-    deal();
-  }
+    deal(cards, draw);
+    deal(opponentCards, opponentDraw);
 
-  void addButton(
-      String label, Vector2 position, Action action) {
-    final button = FlatButton(
-      label,
-      size: Vector2(BlackJackGame.cardWidth, borderGap),
-      position: position,
-      onReleased: () {
-        /* if (action == Action.haveFun) {
-          // Shortcut to the "win" sequence, for Tutorial purposes only.
-          letsCelebrate();
-        } else {
-          // Restart with a new deal or the same deal as before.
-          game.action = action;
-          game.world = BlackJackWorld();
-        } */
-      },
+    //#endregion
+
+    playerScore = TextComponent(
+      text: '${player.score} / ${player.maxScore}',
+      textRenderer: scoreRenderer,
+      anchor: Anchor.topCenter,
+      position: Vector2(
+          playAreaSize.x / 2,
+          playAreaSize.y -
+              BlackJackGame.cardHeight -
+              BlackJackGame.borderGap * 2),
     );
-    add(button);
+
+    opponentScore = TextComponent(
+      text: '${opponent.score} / ${opponent.maxScore}',
+      textRenderer: scoreRenderer,
+      anchor: Anchor.topCenter,
+      position: Vector2(
+          playAreaSize.x / 2,
+          BlackJackGame.cardHeight +
+              BlackJackGame.borderGap * 2),
+    );
+
+    add(playerScore);
+    add(opponentScore);
   }
 
-  void deal() {
+  @override
+  void update(double dt) {
+    super.update(dt);
+    playerScore.text =
+        '${player.score} / ${player.maxScore}';
+    opponentScore.text =
+        '${opponent.score} / ${opponent.maxScore}';
+  }
+
+  void deal(List<Card> cards, DrawPile draw) {
     assert(cards.length == 32,
         'There are ${cards.length} cards: should be 32');
 
@@ -146,10 +217,14 @@ class BlackJackWorld extends World
       card.priority = dealPriority++;
     }
 
+    for (var n = 0; n <= cards.length - 1; n++) {
+      draw.acquireCard(cards[n]);
+    }
+
     // Change priority as cards take off: so later cards fly above earlier ones.
-    var cardToDeal = cards.length - 1;
-    /* var nMovingCards = 0;
-     for (var i = 0; i < 7; i++) {
+    /* var cardToDeal = cards.length - 1;
+    var nMovingCards = 0;
+    for (var i = 0; i < 7; i++) {
       for (var j = i; j < 7; j++) {
         final card = cards[cardToDeal--];
         card.doMove(
@@ -172,10 +247,10 @@ class BlackJackWorld extends World
         );
         nMovingCards++;
       }
-    } */
+    }
     for (var n = 0; n <= cardToDeal; n++) {
       draw.acquireCard(cards[n]);
-    }
+    } */
   }
 
   /* void checkWin() {
@@ -308,5 +383,51 @@ class BlackJackWorld extends World
       card.position = pile.position;
       cards.add(card);
     }
+  }
+
+  void endRound() {
+    String endResult;
+    Color color;
+
+    if (player.score == opponent.score) {
+      endResult = "It's a draw !";
+      color = const Color(0xFF000000);
+    } else if (player.score < opponent.score &&
+        opponent.score <= opponent.maxScore) {
+      endResult =
+          "You lose by ${opponent.score - player.score} points !";
+      color = const Color(0xFFC40A0A);
+    } else if (player.score > player.maxScore) {
+      endResult = "You drew too many cards !";
+      color = const Color(0xFFC40A0A);
+    } else if (player.score > opponent.score &&
+        player.score <= player.maxScore) {
+      endResult =
+          "You won by ${player.score - opponent.score} points !";
+      color = const Color(0xFF1A5105);
+    } else if (opponent.score > opponent.maxScore) {
+      endResult = "Your opponent drew too many cards !";
+      color = const Color(0xFF1A5105);
+    } else {
+      endResult = "How did you get that result ?";
+      color = const Color(0xFF000000);
+    }
+    add(
+      TextComponent(
+        priority: 100,
+        //boxConfig: TextBoxConfig(timePerChar: 0.05),
+        text: endResult,
+        textRenderer: TextPaint(
+          style: TextStyle(
+            fontSize: 0.05 * playAreaSize.y,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        position:
+            Vector2(playAreaSize.x / 2, playAreaSize.y / 2),
+        anchor: Anchor.center,
+      ),
+    );
   }
 }

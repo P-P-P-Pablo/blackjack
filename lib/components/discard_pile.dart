@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:blackjack/models/pile.dart';
 
 import '../blackjack_game.dart';
+import '../models/player.dart';
 import 'card.dart';
 
 class DiscardPile extends PositionComponent
@@ -12,6 +13,8 @@ class DiscardPile extends PositionComponent
 
   DiscardPile({super.position})
       : super(size: BlackJackGame.cardSize);
+
+  Player? player;
 
   final List<Card> _cards = [];
   final Vector2 _fanOffset =
