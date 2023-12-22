@@ -60,7 +60,7 @@ class TablePile extends PositionComponent
     _cards.add(card);
     _fanOutCards();
     player!.updateScore();
-    if (player!.score >= player!.maxScore) {
+    if (player!.score.value >= player!.maxScore) {
       _hitButton?.isDisabled = true;
     }
   }
