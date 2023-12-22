@@ -1,6 +1,7 @@
 import 'package:blackjack/components/discard_pile.dart';
 import 'package:blackjack/components/draw_pile.dart';
 import 'package:blackjack/components/table_pile.dart';
+import 'package:flutter/foundation.dart';
 
 import '../components/card.dart';
 
@@ -11,7 +12,7 @@ class Player {
   late final DiscardPile discardPile;
   late final TablePile tablePile;
   final int maxScore = 21;
-  int score = 0;
+  ValueNotifier<int> score = ValueNotifier<int>(0);
   int? limit;
 
   void deckAttribution(List<Card> deck) {
@@ -33,7 +34,7 @@ class Player {
   }
 
   int updateScore() {
-    score = 0;
+    score.value = 0;
     // get a copy of all cards values
     List<int> valuesList = [];
     for (Card card in tablePile.cardsList) {
@@ -49,14 +50,14 @@ class Player {
       if (value > 10) value = 10;
       // Ace value is 10 if score < maxScore
       if (value == 1) {
-        if (score + 10 < maxScore) {
+        if (score.value + 10 < maxScore) {
           value = 10;
         } else {
           value = 1;
         }
       }
-      score += value;
+      score.value += value;
     }
-    return score;
+    return score.value;
   }
 }
