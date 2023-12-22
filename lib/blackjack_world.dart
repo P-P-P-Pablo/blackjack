@@ -399,7 +399,7 @@ class BlackJackWorld extends World
     }
   }
 
-  void endRound() {
+  Future<void> endRound() async {
     String endResult;
     Color color;
 
@@ -426,22 +426,56 @@ class BlackJackWorld extends World
       endResult = "How did you get that result ?";
       color = const Color(0xFF000000);
     }
-    add(
-      TextComponent(
-        priority: 100,
-        //boxConfig: TextBoxConfig(timePerChar: 0.05),
-        text: endResult,
-        textRenderer: TextPaint(
-          style: TextStyle(
-            fontSize: 0.05 * playAreaSize.y,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+
+    TextComponent endMessage = TextComponent(
+      priority: 100,
+      //boxConfig: TextBoxConfig(timePerChar: 0.05),
+      text: endResult,
+      textRenderer: TextPaint(
+        style: TextStyle(
+          fontSize: 0.05 * playAreaSize.y,
+          fontWeight: FontWeight.bold,
+          color: color,
         ),
-        position:
-            Vector2(playAreaSize.x / 2, playAreaSize.y / 2),
-        anchor: Anchor.center,
       ),
+      position:
+          Vector2(playAreaSize.x / 2, playAreaSize.y / 2),
+      anchor: Anchor.center,
     );
+    add(endMessage);
+    await Future.delayed(const Duration(seconds: 3), () {
+      remove(endMessage);
+
+      table
+          .removeAllCards()
+          .asMap()
+          .forEach((int i, Card card) {
+        card.doMove(
+          discard.position,
+          speed: 15.0,
+          start: i * 0.3,
+          startPriority: 100 + i,
+          onComplete: () {
+            discard.acquireCard(card);
+          },
+        );
+      });
+      opponentTable
+          .removeAllCards()
+          .asMap()
+          .forEach((int i, Card card) {
+        card.doMove(
+          opponentDiscard.position,
+          speed: 15.0,
+          start: i * 0.3,
+          startPriority: 100 + i,
+          onComplete: () {
+            opponentDiscard.acquireCard(card);
+          },
+        );
+      });
+      player.updateScore();
+      opponent.updateScore();
+    });
   }
 }

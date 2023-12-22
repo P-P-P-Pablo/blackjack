@@ -33,6 +33,7 @@ class Player {
     table.player = this;
   }
 
+
   int updateScore() {
     score.value = 0;
     // get a copy of all cards values
@@ -58,6 +59,5 @@ class Player {
       }
       score.value += value;
     }
-    return score.value;
   }
 }
