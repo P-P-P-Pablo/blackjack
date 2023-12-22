@@ -33,8 +33,7 @@ class Player {
     table.player = this;
   }
 
-
-  int updateScore() {
+  void updateScore() {
     score.value = 0;
     // get a copy of all cards values
     List<int> valuesList = [];
