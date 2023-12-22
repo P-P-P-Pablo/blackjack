@@ -39,8 +39,8 @@ class BlackJackWorld extends World
   final List<Card> opponentCards = [];
   final Vector2 playAreaSize = Vector2(7200, 12800);
 
-  late final TextComponent playerScore;
-  late final TextComponent opponentScore;
+  late final TextComponent playerScoreDisplay;
+  late final TextComponent opponentScoreDisplay;
   final scoreRenderer = TextPaint(
       style: const TextStyle(
     fontSize: 400,
@@ -105,8 +105,8 @@ class BlackJackWorld extends World
           draw.hitCard();
         }
 
-        if (opponent.score < opponent.maxScore &&
-            opponent.score < opponent.limit!) {
+        if (opponent.score.value < opponent.maxScore &&
+            opponent.score.value < opponent.limit!) {
           opponentDraw.hitCard();
         }
       },
@@ -121,10 +121,10 @@ class BlackJackWorld extends World
           playAreaSize.y - 4 * borderGap),
       onPressed: () {
         hitButton.isDisabled = true;
-        if (opponent.score < opponent.maxScore &&
-            opponent.score < opponent.limit!) {
+        if (opponent.score.value < opponent.maxScore &&
+            opponent.score.value < opponent.limit!) {
           opponentDraw.hitCard();
-        } else if (opponent.score >= opponent.limit! &&
+        } else if (opponent.score.value > opponent.limit! &&
             hitButton.isDisabled) {
           endRound();
         }
@@ -166,8 +166,9 @@ class BlackJackWorld extends World
 
     //#endregion
 
-    playerScore = TextComponent(
-      text: '${player.score} / ${player.maxScore}',
+    // init
+    playerScoreDisplay = TextComponent(
+      text: '${player.score.value} / ${player.maxScore}',
       textRenderer: scoreRenderer,
       anchor: Anchor.topCenter,
       position: Vector2(
@@ -177,7 +178,14 @@ class BlackJackWorld extends World
               BlackJackGame.borderGap * 2),
     );
 
-    opponentScore = TextComponent(
+    // onChange
+    player.score.addListener(() {
+      playerScoreDisplay.text =
+          '${player.score.value} / ${player.maxScore}';
+    });
+
+    // init
+    opponentScoreDisplay = TextComponent(
       text: '${opponent.score} / ${opponent.maxScore}',
       textRenderer: scoreRenderer,
       anchor: Anchor.topCenter,
@@ -187,18 +195,24 @@ class BlackJackWorld extends World
               BlackJackGame.borderGap * 2),
     );
 
-    add(playerScore);
-    add(opponentScore);
+    // onChange
+    opponent.score.addListener(() {
+      opponentScoreDisplay.text =
+          '${opponent.score.value} / ${opponent.maxScore}';
+    });
+
+    add(playerScoreDisplay);
+    add(opponentScoreDisplay);
   }
 
-  @override
+  /* @override
   void update(double dt) {
     super.update(dt);
-    playerScore.text =
+    playerScoreDisplay.text =
         '${player.score} / ${player.maxScore}';
-    opponentScore.text =
+    opponentScoreDisplay.text =
         '${opponent.score} / ${opponent.maxScore}';
-  }
+  } */
 
   void deal(List<Card> cards, DrawPile draw) {
     assert(cards.length == 32,
@@ -392,20 +406,20 @@ class BlackJackWorld extends World
     if (player.score == opponent.score) {
       endResult = "It's a draw !";
       color = const Color(0xFF000000);
-    } else if (player.score < opponent.score &&
-        opponent.score <= opponent.maxScore) {
+    } else if (player.score.value < opponent.score.value &&
+        opponent.score.value <= opponent.maxScore) {
       endResult =
-          "You lose by ${opponent.score - player.score} points !";
+          "You lose by ${opponent.score.value - player.score.value} points !";
       color = const Color(0xFFC40A0A);
-    } else if (player.score > player.maxScore) {
+    } else if (player.score.value > player.maxScore) {
       endResult = "You drew too many cards !";
       color = const Color(0xFFC40A0A);
-    } else if (player.score > opponent.score &&
-        player.score <= player.maxScore) {
+    } else if (player.score.value > opponent.score.value &&
+        player.score.value <= player.maxScore) {
       endResult =
-          "You won by ${player.score - opponent.score} points !";
+          "You won by ${player.score.value - opponent.score.value} points !";
       color = const Color(0xFF1A5105);
-    } else if (opponent.score > opponent.maxScore) {
+    } else if (opponent.score.value > opponent.maxScore) {
       endResult = "Your opponent drew too many cards !";
       color = const Color(0xFF1A5105);
     } else {
