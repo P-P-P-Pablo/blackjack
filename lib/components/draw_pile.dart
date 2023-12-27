@@ -63,9 +63,17 @@ class DrawPile extends PositionComponent
     // if empty, put all cards from discard in random order
     if (_cards.isEmpty) {
       print("is empty");
-      discardPile.removeAllCards().forEach((card) {
-        card.flip();
-        acquireCard(card);
+      discardPile
+          .removeAllCards()
+          .asMap()
+          .forEach((i, Card card) {
+        card.doMoveAndFlip(
+          position,
+          start: i * 0.2,
+          whenDone: () {
+            acquireCard(card);
+          },
+        );
       });
     } else {
       // else put a card from draw to table

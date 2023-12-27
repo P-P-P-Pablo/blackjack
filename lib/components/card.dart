@@ -50,7 +50,7 @@ class Card extends PositionComponent
 
   bool get isFaceUp => _faceUp;
   bool get isFaceDown => !_faceUp;
-  void flip() {
+  void basicFlip() {
     if (_isAnimatedFlip) {
       // Let the animation determine the FaceUp/FaceDown state.
       _faceUp = _isFaceUpView;
@@ -498,7 +498,7 @@ class Card extends PositionComponent
         EffectController(
             duration: dt, startDelay: start, curve: curve),
         onComplete: () {
-          turnFaceUp(
+          animatedFlip(
             onComplete: whenDone,
           );
         },
@@ -506,13 +506,13 @@ class Card extends PositionComponent
     );
   }
 
-  void turnFaceUp({
+// TODO: Faceup must become Flip
+
+  void animatedFlip({
     double time = 0.3,
     double start = 0.0,
     VoidCallback? onComplete,
   }) {
-    assert(!_isFaceUpView,
-        'Card must be face-down before turning face-up.');
     assert(
         time > 0.0, 'Time to turn card over must be > 0');
     assert(start >= 0.0, 'Start tim must be >= 0');
@@ -528,12 +528,12 @@ class Card extends PositionComponent
           curve: Curves.easeOutSine,
           duration: time / 2,
           onMax: () {
-            _isFaceUpView = true;
+            _isFaceUpView = !_isFaceUpView;
           },
           reverseDuration: time / 2,
           onMin: () {
             _isAnimatedFlip = false;
-            _faceUp = true;
+            _faceUp = !_faceUp;
             anchor = Anchor.topLeft;
             position -= Vector2(width / 2, 0);
           },

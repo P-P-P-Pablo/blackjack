@@ -34,7 +34,7 @@ class Player {
   }
 
   void updateScore() {
-    score.value = 0;
+    int scoreValue = 0;
     // get a copy of all cards values
     List<int> valuesList = [];
     for (Card card in tablePile.cardsList) {
@@ -50,13 +50,14 @@ class Player {
       if (value > 10) value = 10;
       // Ace value is 10 if score < maxScore
       if (value == 1) {
-        if (score.value + 10 < maxScore) {
+        if (scoreValue + 10 < maxScore) {
           value = 10;
         } else {
           value = 1;
         }
       }
-      score.value += value;
+      scoreValue += value;
     }
+    score.value = scoreValue;
   }
 }
