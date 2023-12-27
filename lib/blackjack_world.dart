@@ -124,7 +124,8 @@ class BlackJackWorld extends World
         if (opponent.score.value < opponent.maxScore &&
             opponent.score.value < opponent.limit!) {
           opponentDraw.hitCard();
-        } else if (opponent.score.value > opponent.limit! &&
+        } else if (opponent.score.value >=
+                opponent.limit! &&
             hitButton.isDisabled) {
           endRound();
         }
@@ -180,13 +181,15 @@ class BlackJackWorld extends World
 
     // onChange
     player.score.addListener(() {
+      print('player Score : ${player.score.value}');
       playerScoreDisplay.text =
           '${player.score.value} / ${player.maxScore}';
     });
 
     // init
     opponentScoreDisplay = TextComponent(
-      text: '${opponent.score} / ${opponent.maxScore}',
+      text:
+          '${opponent.score.value} / ${opponent.maxScore}',
       textRenderer: scoreRenderer,
       anchor: Anchor.topCenter,
       position: Vector2(
@@ -197,6 +200,7 @@ class BlackJackWorld extends World
 
     // onChange
     opponent.score.addListener(() {
+      print('opponent Score : ${opponent.score.value}');
       opponentScoreDisplay.text =
           '${opponent.score.value} / ${opponent.maxScore}';
     });
@@ -215,8 +219,9 @@ class BlackJackWorld extends World
   } */
 
   void deal(List<Card> cards, DrawPile draw) {
-    assert(cards.length == 32,
-        'There are ${cards.length} cards: should be 32');
+    // TODO: remove comment
+    /* assert(cards.length == 32,
+        'There are ${cards.length} cards: should be 32'); */
 
     if (game.action != Action.sameDeal) {
       // New deal: change the Random Number Generator's seed.
@@ -337,7 +342,7 @@ class BlackJackWorld extends World
       final card = cards[cardIndex];
       card.priority = cardIndex + 1;
       if (card.isFaceDown) {
-        card.flip();
+        card.basicFlip();
       }
       // Start cards a short time apart to give a riffle effect.
       final delay = phase == 1
@@ -383,14 +388,15 @@ class BlackJackWorld extends World
   }
 
   void addCardsToPile(List<Card> cards, DrawPile pile) {
+    // TODO: remove comment
     // adding Numbers and Faces
-    for (var rank = 7; rank <= 13; rank++) {
+    /* for (var rank = 7; rank <= 13; rank++) {
       for (var suit = 0; suit < 4; suit++) {
         final card = Card(rank, suit);
         card.position = pile.position;
         cards.add(card);
       }
-    }
+    } */
     // adding Aces
     for (var suit = 0; suit < 4; suit++) {
       final card = Card(1, suit);
@@ -403,7 +409,7 @@ class BlackJackWorld extends World
     String endResult;
     Color color;
 
-    if (player.score == opponent.score) {
+    if (player.score.value == opponent.score.value) {
       endResult = "It's a draw !";
       color = const Color(0xFF000000);
     } else if (player.score.value < opponent.score.value &&
@@ -476,6 +482,7 @@ class BlackJackWorld extends World
       });
       player.updateScore();
       opponent.updateScore();
+      hitButton.isDisabled = false;
     });
   }
 }
