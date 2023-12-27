@@ -19,10 +19,11 @@ class Card extends PositionComponent
         DragCallbacks,
         TapCallbacks,
         HasWorldReference<BlackJackWorld> {
-  @override
-  bool get debugMode => true;
+  /* @override
+  bool get debugMode => true; */
 
-  Card(int intRank, int intSuit, {this.isBaseCard = false})
+  Card(int intRank, int intSuit, this.backNumber,
+      {this.isBaseCard = false})
       : rank = Rank.fromInt(intRank),
         suit = Suit.fromInt(intSuit),
         super(
@@ -31,6 +32,7 @@ class Card extends PositionComponent
 
   final Rank rank;
   final Suit suit;
+  final int backNumber;
   Pile? pile;
   Player? player;
   // A Base Card is rendered in outline only and is NOT playable. It can be
@@ -80,38 +82,69 @@ class Card extends PositionComponent
     }
   }
 
-  static final Paint backBackgroundPaint = Paint()
-    ..color = const Color(0xff380c02);
   static final Paint backBorderPaint1 = Paint()
     ..color = const Color(0xffdbaf58)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 10;
-  static final Paint backBorderPaint2 = Paint()
-    ..color = const Color(0x5CEF971B)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 35;
+
   static final RRect cardRRect = RRect.fromRectAndRadius(
     BlackJackGame.cardSize.toRect(),
     const Radius.circular(BlackJackGame.cardRadius),
   );
-  static final RRect backRRectInner = cardRRect.deflate(40);
-  static final Sprite flameSprite =
-      blackjackSprite(1367, 6, 357, 501);
+
+  double spriteWidth = 102;
+  double spriteHeight = 144;
 
   void _renderBack(Canvas canvas) {
-    canvas.drawRRect(cardRRect, backBackgroundPaint);
-    canvas.drawRRect(cardRRect, backBorderPaint1);
-    canvas.drawRRect(backRRectInner, backBorderPaint2);
-    flameSprite.render(canvas,
-        position: size / 2, anchor: Anchor.center);
+    double spriteX = 0;
+    double spriteY = 0;
+
+    switch (backNumber) {
+      case 1:
+        spriteX = 0;
+        spriteY = 0;
+        break;
+      case 2:
+        spriteX = 102;
+        spriteY = 0;
+        break;
+      case 3:
+        spriteX = 204;
+        spriteY = 0;
+        break;
+      case 4:
+        spriteX = 306;
+        spriteY = 0;
+        break;
+      case 5:
+        spriteX = 0;
+        spriteY = 144;
+        break;
+      case 6:
+        spriteX = 102;
+        spriteY = 144;
+        break;
+      case 7:
+        spriteX = 204;
+        spriteY = 144;
+        break;
+      case 8:
+        spriteX = 306;
+        spriteY = 144;
+        break;
+    }
+
+    final Sprite cardFrontSprite = backSprite(
+        spriteX, spriteY, spriteWidth, spriteHeight);
+    /* cardFrontSprite.render(canvas,
+        position: size / 2, anchor: Anchor.center); */
+    _drawSprite(canvas, cardFrontSprite, 0.5, 0.5);
   }
 
   void _renderBaseCard(Canvas canvas) {
     canvas.drawRRect(cardRRect, backBorderPaint1);
   }
 
-  static final Paint frontBackgroundPaint = Paint()
-    ..color = const Color(0xff000000);
   static final Paint redBorderPaint = Paint()
     ..color = const Color(0xffece8a3)
     ..style = PaintingStyle.stroke
@@ -125,150 +158,17 @@ class Card extends PositionComponent
       Color(0x880d8bff),
       BlendMode.srcATop,
     );
-  static final Sprite redJack =
-      blackjackSprite(81, 565, 562, 488);
-  static final Sprite redQueen =
-      blackjackSprite(717, 541, 486, 515);
-  static final Sprite redKing =
-      blackjackSprite(1305, 532, 407, 549);
-  static final Sprite blackJack =
-      blackjackSprite(81, 565, 562, 488)
-        ..paint = blueFilter;
-  static final Sprite blackQueen =
-      blackjackSprite(717, 541, 486, 515)
-        ..paint = blueFilter;
-  static final Sprite blackKing =
-      blackjackSprite(1305, 532, 407, 549)
-        ..paint = blueFilter;
 
   void _renderFront(Canvas canvas) {
-    canvas.drawRRect(cardRRect, frontBackgroundPaint);
-    canvas.drawRRect(
-      cardRRect,
-      suit.isRed ? redBorderPaint : blackBorderPaint,
-    );
+    final double spriteX =
+        rank.value * spriteWidth - spriteWidth;
+    final double spriteY = suit.value * spriteHeight;
 
-    final rankSprite =
-        suit.isBlack ? rank.blackSprite : rank.redSprite;
-    final suitSprite = suit.sprite;
-    _drawSprite(canvas, rankSprite, 0.1, 0.08);
-    _drawSprite(canvas, suitSprite, 0.1, 0.18, scale: 0.5);
-    _drawSprite(canvas, rankSprite, 0.1, 0.08,
-        rotate: true);
-    _drawSprite(canvas, suitSprite, 0.1, 0.18,
-        scale: 0.5, rotate: true);
-    switch (rank.value) {
-      case 1:
-        _drawSprite(canvas, suitSprite, 0.5, 0.5,
-            scale: 2.5);
-        break;
-      case 2:
-        _drawSprite(canvas, suitSprite, 0.5, 0.25);
-        _drawSprite(canvas, suitSprite, 0.5, 0.25,
-            rotate: true);
-        break;
-      case 3:
-        _drawSprite(canvas, suitSprite, 0.5, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.5);
-        _drawSprite(canvas, suitSprite, 0.5, 0.2,
-            rotate: true);
-        break;
-      case 4:
-        _drawSprite(canvas, suitSprite, 0.3, 0.25);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25);
-        _drawSprite(canvas, suitSprite, 0.3, 0.25,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25,
-            rotate: true);
-        break;
-      case 5:
-        _drawSprite(canvas, suitSprite, 0.3, 0.25);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25);
-        _drawSprite(canvas, suitSprite, 0.3, 0.25,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.5, 0.5);
-        break;
-      case 6:
-        _drawSprite(canvas, suitSprite, 0.3, 0.25);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25);
-        _drawSprite(canvas, suitSprite, 0.3, 0.5);
-        _drawSprite(canvas, suitSprite, 0.7, 0.5);
-        _drawSprite(canvas, suitSprite, 0.3, 0.25,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25,
-            rotate: true);
-        break;
-      case 7:
-        _drawSprite(canvas, suitSprite, 0.3, 0.2);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.35);
-        _drawSprite(canvas, suitSprite, 0.3, 0.5);
-        _drawSprite(canvas, suitSprite, 0.7, 0.5);
-        _drawSprite(canvas, suitSprite, 0.3, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2,
-            rotate: true);
-        break;
-      case 8:
-        _drawSprite(canvas, suitSprite, 0.3, 0.2);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.35);
-        _drawSprite(canvas, suitSprite, 0.3, 0.5);
-        _drawSprite(canvas, suitSprite, 0.7, 0.5);
-        _drawSprite(canvas, suitSprite, 0.3, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.5, 0.35,
-            rotate: true);
-        break;
-      case 9:
-        _drawSprite(canvas, suitSprite, 0.3, 0.2);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.3);
-        _drawSprite(canvas, suitSprite, 0.3, 0.4);
-        _drawSprite(canvas, suitSprite, 0.7, 0.4);
-        _drawSprite(canvas, suitSprite, 0.3, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.3, 0.4,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.4,
-            rotate: true);
-        break;
-      case 10:
-        _drawSprite(canvas, suitSprite, 0.3, 0.2);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.3);
-        _drawSprite(canvas, suitSprite, 0.3, 0.4);
-        _drawSprite(canvas, suitSprite, 0.7, 0.4);
-        _drawSprite(canvas, suitSprite, 0.3, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.5, 0.3,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.3, 0.4,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.4,
-            rotate: true);
-        break;
-      case 11:
-        _drawSprite(canvas,
-            suit.isRed ? redJack : blackJack, 0.5, 0.5);
-        break;
-      case 12:
-        _drawSprite(canvas,
-            suit.isRed ? redQueen : blackQueen, 0.5, 0.5);
-        break;
-      case 13:
-        _drawSprite(canvas,
-            suit.isRed ? redKing : blackKing, 0.5, 0.5);
-        break;
-    }
+    final Sprite cardFrontSprite = frontSprite(
+        spriteX, spriteY, spriteWidth, spriteHeight);
+    /* cardFrontSprite.render(canvas,
+        position: size / 2, anchor: Anchor.center); */
+    _drawSprite(canvas, cardFrontSprite, 0.5, 0.5);
   }
 
   void _drawSprite(
@@ -276,7 +176,7 @@ class Card extends PositionComponent
     Sprite sprite,
     double relativeX,
     double relativeY, {
-    double scale = 1,
+    double scale = 10,
     bool rotate = false,
   }) {
     if (rotate) {

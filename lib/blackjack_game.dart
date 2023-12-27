@@ -13,8 +13,8 @@ class BlackJackGame extends FlameGame<BlackJackWorld> {
 
   static const double cardGap = 175.0;
   static const double borderGap = 300.0;
-  static const double cardWidth = 1000.0;
-  static const double cardHeight = 1400.0;
+  static const double cardWidth = 1020.0;
+  static const double cardHeight = 1440.0;
   static const double cardRadius = 100.0;
   static const double cardSpaceWidth = cardWidth + cardGap;
   static const double cardSpaceHeight =
@@ -26,6 +26,8 @@ class BlackJackGame extends FlameGame<BlackJackWorld> {
     const Radius.circular(cardRadius),
   );
   static const opponentLimit = 17;
+  static const yourBackNumber = 2;
+  static const opponentBackNumber = 4;
 
   /// Constant used to decide when a short drag is treated as a TapUp event.
   static const double dragTolerance = cardWidth / 5;
@@ -46,10 +48,19 @@ class BlackJackGame extends FlameGame<BlackJackWorld> {
   Action action = Action.newDeal;
 }
 
-Sprite blackjackSprite(
+Sprite frontSprite(
     double x, double y, double width, double height) {
   return Sprite(
-    Flame.images.fromCache('klondike-sprites.png'),
+    Flame.images.fromCache('cards.png'),
+    srcPosition: Vector2(x, y),
+    srcSize: Vector2(width, height),
+  );
+}
+
+Sprite backSprite(
+    double x, double y, double width, double height) {
+  return Sprite(
+    Flame.images.fromCache('backsheet.png'),
     srcPosition: Vector2(x, y),
     srcSize: Vector2(width, height),
   );
