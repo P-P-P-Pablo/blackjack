@@ -41,11 +41,19 @@ class BlackJackWorld extends World
 
   late final TextComponent playerScoreDisplay;
   late final TextComponent opponentScoreDisplay;
+  late final TextComponent playerHPDisplay;
+  late final TextComponent opponentHPDisplay;
   final scoreRenderer = TextPaint(
       style: const TextStyle(
     fontSize: 400,
     fontWeight: FontWeight.bold,
     color: Color(0xFFDBAF58),
+  ));
+  final hpRenderer = TextPaint(
+      style: const TextStyle(
+    fontSize: 200,
+    fontWeight: FontWeight.bold,
+    color: Color(0xFFDB4638),
   ));
 
   late final FlatButton hitButton;
@@ -161,6 +169,44 @@ class BlackJackWorld extends World
       },
     );
     add(standButton);
+    //#endregion
+
+    //#region HP Display
+
+    // init
+    playerHPDisplay = TextComponent(
+        text: '${player.hitPoints.value} / ${player.maxHP}',
+        textRenderer: hpRenderer,
+        anchor: Anchor.topLeft,
+        position: Vector2(
+            draw.position.x + cardWidth + cardGap,
+            draw.position.y));
+
+    // onChange
+    player.hitPoints.addListener(() {
+      print('player HP : ${player.hitPoints.value}');
+      playerHPDisplay.text =
+          '${player.hitPoints.value} / ${player.maxHP}';
+    });
+
+    opponentHPDisplay = TextComponent(
+        text:
+            '${opponent.hitPoints.value} / ${opponent.maxHP}',
+        textRenderer: hpRenderer,
+        anchor: Anchor.topLeft,
+        position: Vector2(
+            opponentDraw.position.x + cardWidth + cardGap,
+            opponentDraw.position.y));
+
+    // onChange
+    opponent.hitPoints.addListener(() {
+      print('opponent HP : ${opponent.hitPoints.value}');
+      opponentHPDisplay.text =
+          '${opponent.hitPoints.value} / ${opponent.maxHP}';
+    });
+
+    add(opponentHPDisplay);
+    add(playerHPDisplay);
     //#endregion
 
     //#region Score Display
@@ -355,6 +401,8 @@ class BlackJackWorld extends World
     String endResult;
     Color color;
 
+    int matchEndTrigger = 1;
+
     if (player.score.value == opponent.score.value) {
       endResult = "It's a draw !";
       color = const Color(0xFF000000);
@@ -363,17 +411,25 @@ class BlackJackWorld extends World
       endResult =
           "You lose by ${opponent.score.value - player.score.value} points !";
       color = const Color(0xFFC40A0A);
+      matchEndTrigger = await player.loseHP(
+          opponent.score.value - player.score.value);
     } else if (player.score.value > player.maxScore) {
       endResult = "You drew too many cards !";
       color = const Color(0xFFC40A0A);
+      matchEndTrigger =
+          await player.loseHP(opponent.score.value);
     } else if (player.score.value > opponent.score.value &&
         player.score.value <= player.maxScore) {
       endResult =
           "You won by ${player.score.value - opponent.score.value} points !";
       color = const Color(0xFF1A5105);
+      matchEndTrigger = await opponent.loseHP(
+          player.score.value - opponent.score.value);
     } else if (opponent.score.value > opponent.maxScore) {
       endResult = "Your opponent drew too many cards !";
       color = const Color(0xFF1A5105);
+      matchEndTrigger =
+          await opponent.loseHP(player.score.value);
     } else {
       endResult = "How did you get that result ?";
       color = const Color(0xFF000000);
@@ -394,6 +450,7 @@ class BlackJackWorld extends World
           Vector2(playAreaSize.x / 2, playAreaSize.y / 2),
       anchor: Anchor.center,
     );
+
     add(endMessage);
     await Future.delayed(const Duration(seconds: 3), () {
       remove(endMessage);
@@ -401,7 +458,7 @@ class BlackJackWorld extends World
       table
           .removeAllCards()
           .asMap()
-          .forEach((int i, Card card) {
+          .forEach((int i, Card card) async {
         card.doMove(
           discard.position,
           speed: 15.0,
@@ -415,7 +472,7 @@ class BlackJackWorld extends World
       opponentTable
           .removeAllCards()
           .asMap()
-          .forEach((int i, Card card) {
+          .forEach((int i, Card card) async {
         card.doMove(
           opponentDiscard.position,
           speed: 15.0,
@@ -428,7 +485,25 @@ class BlackJackWorld extends World
       });
       player.updateScore();
       opponent.updateScore();
-      hitButton.isDisabled = false;
+      if (matchEndTrigger == 0) {
+        add(TextComponent(
+          priority: 100,
+          //boxConfig: TextBoxConfig(timePerChar: 0.05),
+          text: "Game Over",
+          textRenderer: TextPaint(
+            style: TextStyle(
+              fontSize: 0.05 * playAreaSize.y,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          position: Vector2(
+              playAreaSize.x / 2, playAreaSize.y / 2),
+          anchor: Anchor.center,
+        ));
+      }
     });
+
+    hitButton.isDisabled = false;
   }
 }

@@ -19,8 +19,19 @@ class Player {
 
   Player(this.maxHP) : hitPoints = ValueNotifier(maxHP);
 
-  void loseHP(int damage) {
-    hitPoints.value -= damage;
+  Future<int> loseHP(int damage) async {
+    if (damage > hitPoints.value) {
+      damage = hitPoints.value;
+    }
+
+    for (var i = 0; i < damage; i++) {
+      await Future.delayed(
+          const Duration(milliseconds: 500), () {
+        hitPoints.value -= 1;
+      });
+    }
+
+    return hitPoints.value;
   }
 
   void deckAttribution(List<Card> deck) {
