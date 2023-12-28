@@ -80,28 +80,11 @@ class BlackJackWorld extends World
         (playAreaSize.x - borderGap - cardWidth),
         borderGap + 300);
 
-    // Add a Base Card to the Stock Pile, above the pile and below other cards.
-    final baseCard = Card(
-        1, 0, BlackJackGame.yourBackNumber,
-        isBaseCard: true);
-    baseCard.position = draw.position;
-    baseCard.priority = -1;
-    baseCard.pile = draw;
-    draw.priority = -2;
-
-    final opponentBaseCard = Card(
-        1, 0, BlackJackGame.opponentBackNumber,
-        isBaseCard: true);
-    opponentBaseCard.position = draw.position;
-    opponentBaseCard.priority = -1;
-    opponentBaseCard.pile = draw;
-    opponentDraw.priority = -2;
-
     //#endregion
 
     //#region Gameplay Components
 
-    addGameplayComponents(baseCard, opponentBaseCard);
+    addGameplayComponents();
 
     final gameMidX = playAreaSize.x / 2;
 
@@ -115,8 +98,7 @@ class BlackJackWorld extends World
     //#endregion
   }
 
-  void addGameplayComponents(
-      Card baseCard, Card opponentBaseCard) {
+  void addGameplayComponents() {
     addCardsToPile(
         cards, draw, BlackJackGame.yourBackNumber);
     addCardsToPile(opponentCards, opponentDraw,
@@ -127,7 +109,6 @@ class BlackJackWorld extends World
     add(discard);
     player.pileAttribution(draw, discard, table);
     addAll(cards);
-    add(baseCard);
     player.deckAttribution(cards);
 
     add(opponentDraw);
@@ -136,7 +117,6 @@ class BlackJackWorld extends World
     opponent.pileAttribution(
         opponentDraw, opponentDiscard, opponentTable);
     addAll(opponentCards);
-    add(opponentBaseCard);
     opponent.deckAttribution(opponentCards);
 
     addUserInterface();
