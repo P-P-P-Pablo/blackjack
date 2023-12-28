@@ -67,10 +67,10 @@ class Player {
       int value = toto;
       // Faces value is 10
       if (value > 10) value = 10;
-      // Ace value is 10 if score < maxScore
+      // Ace value is 11 if score < maxScore
       if (value == 1) {
-        if (scoreValue + 10 < maxScore) {
-          value = 10;
+        if (scoreValue + 11 <= maxScore) {
+          value = 11;
         } else {
           value = 1;
         }

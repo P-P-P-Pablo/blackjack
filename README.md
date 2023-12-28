@@ -20,14 +20,14 @@ samples, guidance on mobile development, and a full API reference.
 
 #### Gameplay
 - [x] Scores
-- [ ] Hitpoints
-- [ ] Rounds
+- [x] Hitpoints
+- [x] Rounds
+- [ ] Differents Opponents
 
 #### Actions
 - [x] Hit action
-- [ ] Stand action
+- [x] Stand action
 - [ ] New Deal action
-- [ ] Same Deal action 
 
 #### Animations
 - [ ] Make Cards Move from center to respective pile whan game starts
