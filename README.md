@@ -33,6 +33,14 @@ samples, guidance on mobile development, and a full API reference.
 - [ ] others
 
 #### Misc
+- [x] New Sprites
 - [ ] Better use of the camera
 - [ ] handling different deck for opponents
 - [ ] Cats
+
+#### People i need to copyright
+
+-Pixel Playing Cards by Lazyspace
+https://lazyspace.itch.io/
+
+-

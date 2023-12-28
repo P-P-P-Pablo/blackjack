@@ -53,7 +53,8 @@ class BlackJackWorld extends World
 
   @override
   Future<void> onLoad() async {
-    await Flame.images.load('klondike-sprites.png');
+    await Flame.images.load('cards.png');
+    await Flame.images.load('backsheet.png');
 
     opponent.limit = BlackJackGame.opponentLimit;
 
@@ -80,13 +81,17 @@ class BlackJackWorld extends World
         borderGap + 300);
 
     // Add a Base Card to the Stock Pile, above the pile and below other cards.
-    final baseCard = Card(1, 0, isBaseCard: true);
+    final baseCard = Card(
+        1, 0, BlackJackGame.yourBackNumber,
+        isBaseCard: true);
     baseCard.position = draw.position;
     baseCard.priority = -1;
     baseCard.pile = draw;
     draw.priority = -2;
 
-    final opponentBaseCard = Card(1, 0, isBaseCard: true);
+    final opponentBaseCard = Card(
+        1, 0, BlackJackGame.opponentBackNumber,
+        isBaseCard: true);
     opponentBaseCard.position = draw.position;
     opponentBaseCard.priority = -1;
     opponentBaseCard.pile = draw;
@@ -136,8 +141,10 @@ class BlackJackWorld extends World
 
     //#region Gameplay Components
 
-    addCardsToPile(cards, draw);
-    addCardsToPile(opponentCards, opponentDraw);
+    addCardsToPile(
+        cards, draw, BlackJackGame.yourBackNumber);
+    addCardsToPile(opponentCards, opponentDraw,
+        BlackJackGame.opponentBackNumber);
 
     add(draw);
     add(table);
@@ -387,19 +394,19 @@ class BlackJackWorld extends World
     }
   }
 
-  void addCardsToPile(List<Card> cards, DrawPile pile) {
-    // TODO: remove comment
+  void addCardsToPile(
+      List<Card> cards, DrawPile pile, int backNumber) {
     // adding Numbers and Faces
-    /* for (var rank = 7; rank <= 13; rank++) {
+    for (var rank = 7; rank <= 13; rank++) {
       for (var suit = 0; suit < 4; suit++) {
-        final card = Card(rank, suit);
+        final card = Card(rank, suit, backNumber);
         card.position = pile.position;
         cards.add(card);
       }
-    } */
+    }
     // adding Aces
     for (var suit = 0; suit < 4; suit++) {
-      final card = Card(1, suit);
+      final card = Card(1, suit, backNumber);
       card.position = pile.position;
       cards.add(card);
     }

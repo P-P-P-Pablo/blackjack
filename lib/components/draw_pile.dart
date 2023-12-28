@@ -67,10 +67,11 @@ class DrawPile extends PositionComponent
           .removeAllCards()
           .asMap()
           .forEach((i, Card card) {
-        card.doMoveAndFlip(
+        card.doMove(
           position,
           start: i * 0.2,
-          whenDone: () {
+          onComplete: () {
+            card.basicFlip();
             acquireCard(card);
           },
         );
@@ -84,8 +85,8 @@ class DrawPile extends PositionComponent
               tablePile.position.x,
               tablePile.position.y +
                   (tablePile.cardsList.length *
-                      BlackJackGame.cardWidth *
-                      0.2)),
+                      BlackJackGame.cardHeight *
+                      0.25)),
           whenDone: () {
             tablePile.acquireCard(card);
           },

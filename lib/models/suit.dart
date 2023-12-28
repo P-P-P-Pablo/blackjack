@@ -1,6 +1,4 @@
-import 'package:flame/sprite.dart';
 import 'package:flutter/foundation.dart';
-import '../blackjack_game.dart';
 
 @immutable
 class Suit {
@@ -12,19 +10,16 @@ class Suit {
     return _singletons[index];
   }
 
-  Suit._(this.value, this.label, double x, double y,
-      double w, double h)
-      : sprite = blackjackSprite(x, y, w, h);
+  const Suit._(this.value, this.label);
 
   final int value;
   final String label;
-  final Sprite sprite;
 
   static final List<Suit> _singletons = [
-    Suit._(0, '♥', 1176, 17, 172, 183),
-    Suit._(1, '♦', 973, 14, 177, 182),
-    Suit._(2, '♣', 974, 226, 184, 172),
-    Suit._(3, '♠', 1178, 220, 176, 182),
+    const Suit._(0, '♥'),
+    const Suit._(1, '♦'),
+    const Suit._(2, '♣'),
+    const Suit._(3, '♠'),
   ];
 
   /// Hearts and Diamonds are red, while Clubs and Spades are black.

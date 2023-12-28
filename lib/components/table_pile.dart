@@ -19,7 +19,7 @@ class TablePile extends PositionComponent
 
   final List<Card> _cards = [];
   final Vector2 _fanOffset =
-      Vector2(0, BlackJackGame.cardWidth * 0.2);
+      Vector2(0, BlackJackGame.cardHeight * 0.25);
 
   List<Card> get cardsList => _cards;
 
