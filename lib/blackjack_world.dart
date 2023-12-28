@@ -23,8 +23,8 @@ class BlackJackWorld extends World
   final cardWidth = BlackJackGame.cardWidth;
   final cardHeight = BlackJackGame.cardHeight;
 
-  final Player player = Player();
-  final Player opponent = Player();
+  final Player player = Player(10);
+  final Player opponent = Player(10);
 
   final draw = DrawPile(position: Vector2(0.0, 0.0));
   final table = TablePile(position: Vector2(0.0, 0.0));
@@ -99,6 +99,50 @@ class BlackJackWorld extends World
 
     //#endregion
 
+    //#region Gameplay Components
+
+    addGameplayComponents(baseCard, opponentBaseCard);
+
+    final gameMidX = playAreaSize.x / 2;
+
+    final camera = game.camera;
+    camera.viewfinder.visibleGameSize = playAreaSize;
+    camera.viewfinder.position = Vector2(gameMidX, 0);
+    camera.viewfinder.anchor = Anchor.topCenter;
+    deal(cards, draw);
+    deal(opponentCards, opponentDraw);
+
+    //#endregion
+  }
+
+  void addGameplayComponents(
+      Card baseCard, Card opponentBaseCard) {
+    addCardsToPile(
+        cards, draw, BlackJackGame.yourBackNumber);
+    addCardsToPile(opponentCards, opponentDraw,
+        BlackJackGame.opponentBackNumber);
+
+    add(draw);
+    add(table);
+    add(discard);
+    player.pileAttribution(draw, discard, table);
+    addAll(cards);
+    add(baseCard);
+    player.deckAttribution(cards);
+
+    add(opponentDraw);
+    add(opponentTable);
+    add(opponentDiscard);
+    opponent.pileAttribution(
+        opponentDraw, opponentDiscard, opponentTable);
+    addAll(opponentCards);
+    add(opponentBaseCard);
+    opponent.deckAttribution(opponentCards);
+
+    addUserInterface();
+  }
+
+  void addUserInterface() {
     //#region Buttons
     hitButton = FlatButton(
       "HIT",
@@ -139,40 +183,7 @@ class BlackJackWorld extends World
     add(standButton);
     //#endregion
 
-    //#region Gameplay Components
-
-    addCardsToPile(
-        cards, draw, BlackJackGame.yourBackNumber);
-    addCardsToPile(opponentCards, opponentDraw,
-        BlackJackGame.opponentBackNumber);
-
-    add(draw);
-    add(table);
-    add(discard);
-    player.pileAttribution(draw, discard, table);
-    addAll(cards);
-    add(baseCard);
-    player.deckAttribution(cards);
-
-    add(opponentDraw);
-    add(opponentTable);
-    add(opponentDiscard);
-    opponent.pileAttribution(
-        opponentDraw, opponentDiscard, opponentTable);
-    addAll(opponentCards);
-    add(opponentBaseCard);
-    opponent.deckAttribution(opponentCards);
-
-    final gameMidX = playAreaSize.x / 2;
-
-    final camera = game.camera;
-    camera.viewfinder.visibleGameSize = playAreaSize;
-    camera.viewfinder.position = Vector2(gameMidX, 0);
-    camera.viewfinder.anchor = Anchor.topCenter;
-    deal(cards, draw);
-    deal(opponentCards, opponentDraw);
-
-    //#endregion
+    //#region Score Display
 
     // init
     playerScoreDisplay = TextComponent(
@@ -214,21 +225,13 @@ class BlackJackWorld extends World
 
     add(playerScoreDisplay);
     add(opponentScoreDisplay);
+
+    //#endregion
   }
 
-  /* @override
-  void update(double dt) {
-    super.update(dt);
-    playerScoreDisplay.text =
-        '${player.score} / ${player.maxScore}';
-    opponentScoreDisplay.text =
-        '${opponent.score} / ${opponent.maxScore}';
-  } */
-
   void deal(List<Card> cards, DrawPile draw) {
-    // TODO: remove comment
-    /* assert(cards.length == 32,
-        'There are ${cards.length} cards: should be 32'); */
+    assert(cards.length == 32,
+        'There are ${cards.length} cards: should be 32');
 
     if (game.action != Action.sameDeal) {
       // New deal: change the Random Number Generator's seed.
@@ -246,51 +249,7 @@ class BlackJackWorld extends World
     for (var n = 0; n <= cards.length - 1; n++) {
       draw.acquireCard(cards[n]);
     }
-
-    // Change priority as cards take off: so later cards fly above earlier ones.
-    /* var cardToDeal = cards.length - 1;
-    var nMovingCards = 0;
-    for (var i = 0; i < 7; i++) {
-      for (var j = i; j < 7; j++) {
-        final card = cards[cardToDeal--];
-        card.doMove(
-          tableauPiles[j].position,
-          speed: 15.0,
-          start: nMovingCards * 0.15,
-          startPriority: 100 + nMovingCards,
-          onComplete: () {
-            tableauPiles[j].acquireCard(card);
-            nMovingCards--;
-            if (nMovingCards == 0) {
-              var delayFactor = 0;
-              for (final tableauPile in tableauPiles) {
-                delayFactor++;
-                tableauPile.flipTopCard(
-                    start: delayFactor * 0.15);
-              }
-            }
-          },
-        );
-        nMovingCards++;
-      }
-    }
-    for (var n = 0; n <= cardToDeal; n++) {
-      draw.acquireCard(cards[n]);
-    } */
   }
-
-  /* void checkWin() {
-    // Callback from a Foundation Pile when it is full (Ace to King).
-    var nComplete = 0;
-    for (final f in foundations) {
-      if (f.isFull) {
-        nComplete++;
-      }
-    }
-    if (nComplete == foundations.length) {
-      letsCelebrate();
-    }
-  } */
 
   void letsCelebrate({int phase = 1}) {
     // Deal won: bring all cards to the middle of the screen (phase 1)

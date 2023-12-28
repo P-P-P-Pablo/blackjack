@@ -7,6 +7,8 @@ import '../components/card.dart';
 
 class Player {
   // Declaring instance variable
+  late final ValueNotifier<int> hitPoints;
+  final int maxHP;
   late final List<Card> deck;
   late final DrawPile drawPile;
   late final DiscardPile discardPile;
@@ -14,6 +16,12 @@ class Player {
   final int maxScore = 21;
   ValueNotifier<int> score = ValueNotifier<int>(0);
   int? limit;
+
+  Player(this.maxHP) : hitPoints = ValueNotifier(maxHP);
+
+  void loseHP(int damage) {
+    hitPoints.value -= damage;
+  }
 
   void deckAttribution(List<Card> deck) {
     for (var card in deck) {

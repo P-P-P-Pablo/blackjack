@@ -406,8 +406,6 @@ class Card extends PositionComponent
     );
   }
 
-// TODO: Faceup must become Flip
-
   void animatedFlip({
     double time = 0.3,
     double start = 0.0,

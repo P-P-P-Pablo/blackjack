@@ -20,6 +20,7 @@ samples, guidance on mobile development, and a full API reference.
 
 #### Gameplay
 - [x] Scores
+- [ ] Hitpoints
 - [ ] Rounds
 
 #### Actions
