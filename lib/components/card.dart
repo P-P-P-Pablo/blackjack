@@ -12,7 +12,6 @@ import '../models/pile.dart';
 import '../models/player.dart';
 import '../models/rank.dart';
 import '../models/suit.dart';
-import 'draw_pile.dart';
 
 class Card extends PositionComponent
     with
@@ -22,8 +21,7 @@ class Card extends PositionComponent
   /* @override
   bool get debugMode => true; */
 
-  Card(int intRank, int intSuit, this.backNumber,
-      {this.isBaseCard = false})
+  Card(int intRank, int intSuit, this.backNumber)
       : rank = Rank.fromInt(intRank),
         suit = Suit.fromInt(intSuit),
         super(
@@ -35,18 +33,10 @@ class Card extends PositionComponent
   final int backNumber;
   Pile? pile;
   Player? player;
-  // A Base Card is rendered in outline only and is NOT playable. It can be
-  // added to the base of a Pile (e.g. the Stock Pile) to allow it to handle
-  // taps and short drags (on an empty Pile) with the same behavior and
-  // tolerances as for regular cards (see BlackJackGame.dragTolerance) and using
-  // the same event-handling code, but with different handleTapUp() methods.
-  final bool isBaseCard;
 
   bool _faceUp = false;
   bool _isAnimatedFlip = false;
   bool _isFaceUpView = false;
-  bool _isDragging = false;
-  Vector2 _whereCardStarted = Vector2(0, 0);
 
   final List<Card> attachedCards = [];
 
@@ -71,10 +61,6 @@ class Card extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    if (isBaseCard) {
-      _renderBaseCard(canvas);
-      return;
-    }
     if (_isFaceUpView) {
       _renderFront(canvas);
     } else {
@@ -136,13 +122,7 @@ class Card extends PositionComponent
 
     final Sprite cardFrontSprite = backSprite(
         spriteX, spriteY, spriteWidth, spriteHeight);
-    /* cardFrontSprite.render(canvas,
-        position: size / 2, anchor: Anchor.center); */
     _drawSprite(canvas, cardFrontSprite, 0.5, 0.5);
-  }
-
-  void _renderBaseCard(Canvas canvas) {
-    canvas.drawRRect(cardRRect, backBorderPaint1);
   }
 
   static final Paint redBorderPaint = Paint()
@@ -166,8 +146,6 @@ class Card extends PositionComponent
 
     final Sprite cardFrontSprite = frontSprite(
         spriteX, spriteY, spriteWidth, spriteHeight);
-    /* cardFrontSprite.render(canvas,
-        position: size / 2, anchor: Anchor.center); */
     _drawSprite(canvas, cardFrontSprite, 0.5, 0.5);
   }
 
@@ -198,160 +176,6 @@ class Card extends PositionComponent
   }
 
   //#endregion
-
-  //#region Card-Dragging
-
-  @override
-  void onTapCancel(TapCancelEvent event) {
-    if (pile is DrawPile) {
-      _isDragging = false;
-      handleTapUp();
-    }
-  }
-
-  @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    if (pile is DrawPile) {
-      _isDragging = false;
-      return;
-    }
-    // Clone the position, else _whereCardStarted changes as the position does.
-    _whereCardStarted = position.clone();
-    attachedCards.clear();
-    if (pile?.canMoveCard(this, MoveMethod.drag) ?? false) {
-      _isDragging = true;
-      priority = 100;
-      /* if (pile is TableauPile) {
-        final extraCards =
-            (pile! as TableauPile).cardsOnTop(this);
-        for (final card in extraCards) {
-          card.priority = attachedCards.length + 101;
-          attachedCards.add(card);
-        }
-      } */
-    }
-  }
-
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    if (!_isDragging) {
-      return;
-    }
-    final delta = event.localDelta;
-    position.add(delta);
-    for (var card in attachedCards) {
-      card.position.add(delta);
-    }
-  }
-
-  @override
-  void onDragEnd(DragEndEvent event) {
-    super.onDragEnd(event);
-    if (!_isDragging) {
-      return;
-    }
-    _isDragging = false;
-
-    // If short drag, return card to Pile and treat it as having been tapped.
-    final shortDrag =
-        (position - _whereCardStarted).length <
-            BlackJackGame.dragTolerance;
-    if (shortDrag && attachedCards.isEmpty) {
-      doMove(
-        _whereCardStarted,
-        onComplete: () {
-          pile!.returnCard(this);
-          // Card moves to its Foundation Pile next, if valid, or it stays put.
-          handleTapUp();
-        },
-      );
-      return;
-    }
-
-    // Find out what is under the center-point of this card when it is dropped.
-    final dropPiles = parent!
-        .componentsAtPoint(position + size / 2)
-        .whereType<Pile>()
-        .toList();
-    if (dropPiles.isNotEmpty) {
-      if (dropPiles.first.canAcceptCard(this)) {
-        // Found a Pile: move card(s) the rest of the way onto it.
-        pile!.removeCard(this, MoveMethod.drag);
-        /* if (dropPiles.first is TableauPile) {
-          // Get TableauPile to handle positions, priorities and moves of cards.
-          (dropPiles.first as TableauPile)
-              .dropCards(this, attachedCards);
-          attachedCards.clear();
-        } else {
-          // Drop a single card onto a FoundationPile.
-          final dropPosition =
-              (dropPiles.first as FoundationPile).position;
-          doMove(
-            dropPosition,
-            onComplete: () {
-              dropPiles.first.acquireCard(this);
-            },
-          );
-        } */
-        return;
-      }
-    }
-
-    // Invalid drop (middle of nowhere, invalid pile or invalid card for pile).
-    doMove(
-      _whereCardStarted,
-      onComplete: () {
-        pile!.returnCard(this);
-      },
-    );
-    if (attachedCards.isNotEmpty) {
-      for (var card in attachedCards) {
-        final offset = card.position - position;
-        card.doMove(
-          _whereCardStarted + offset,
-          onComplete: () {
-            pile!.returnCard(card);
-          },
-        );
-      }
-      attachedCards.clear();
-    }
-  }
-
-  //#endregion
-
-  //#region Card-Tapping
-
-  // Tap a face-up card to make it auto-move and go out (if acceptable), but
-  // if it is face-down and on the Stock Pile, pass the event to that pile.
-
-  @override
-  void onTapUp(TapUpEvent event) {
-    handleTapUp();
-  }
-
-  void handleTapUp() {
-    // Can be called by onTapUp or after a very short (failed) drag-and-drop.
-    // We need to be more user-friendly towards taps that include a short drag.
-    /* if (pile?.canMoveCard(this, MoveMethod.tap) ?? false) {
-      final suitIndex = suit.value;
-      if (world.foundations[suitIndex]
-          .canAcceptCard(this)) {
-        pile!.removeCard(this, MoveMethod.tap);
-        doMove(
-          world.foundations[suitIndex].position,
-          onComplete: () {
-            world.foundations[suitIndex].acquireCard(this);
-          },
-        );
-      }
-    } else if (pile is DrawPile) {
-      world.stock.handleTapUp(this);
-    } */
-  }
-
-  //#endRegion
 
   //#region Effects
 
@@ -405,8 +229,6 @@ class Card extends PositionComponent
       ),
     );
   }
-
-// TODO: Faceup must become Flip
 
   void animatedFlip({
     double time = 0.3,

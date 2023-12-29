@@ -23,8 +23,8 @@ class BlackJackWorld extends World
   final cardWidth = BlackJackGame.cardWidth;
   final cardHeight = BlackJackGame.cardHeight;
 
-  final Player player = Player();
-  final Player opponent = Player();
+  final Player player = Player(10);
+  final Player opponent = Player(10);
 
   final draw = DrawPile(position: Vector2(0.0, 0.0));
   final table = TablePile(position: Vector2(0.0, 0.0));
@@ -41,11 +41,19 @@ class BlackJackWorld extends World
 
   late final TextComponent playerScoreDisplay;
   late final TextComponent opponentScoreDisplay;
+  late final TextComponent playerHPDisplay;
+  late final TextComponent opponentHPDisplay;
   final scoreRenderer = TextPaint(
       style: const TextStyle(
     fontSize: 400,
     fontWeight: FontWeight.bold,
     color: Color(0xFFDBAF58),
+  ));
+  final hpRenderer = TextPaint(
+      style: const TextStyle(
+    fontSize: 200,
+    fontWeight: FontWeight.bold,
+    color: Color(0xFFDB4638),
   ));
 
   late final FlatButton hitButton;
@@ -80,25 +88,49 @@ class BlackJackWorld extends World
         (playAreaSize.x - borderGap - cardWidth),
         borderGap + 300);
 
-    // Add a Base Card to the Stock Pile, above the pile and below other cards.
-    final baseCard = Card(
-        1, 0, BlackJackGame.yourBackNumber,
-        isBaseCard: true);
-    baseCard.position = draw.position;
-    baseCard.priority = -1;
-    baseCard.pile = draw;
-    draw.priority = -2;
-
-    final opponentBaseCard = Card(
-        1, 0, BlackJackGame.opponentBackNumber,
-        isBaseCard: true);
-    opponentBaseCard.position = draw.position;
-    opponentBaseCard.priority = -1;
-    opponentBaseCard.pile = draw;
-    opponentDraw.priority = -2;
-
     //#endregion
 
+    //#region Gameplay Components
+
+    addGameplayComponents();
+
+    final gameMidX = playAreaSize.x / 2;
+
+    final camera = game.camera;
+    camera.viewfinder.visibleGameSize = playAreaSize;
+    camera.viewfinder.position = Vector2(gameMidX, 0);
+    camera.viewfinder.anchor = Anchor.topCenter;
+    deal(cards, draw);
+    deal(opponentCards, opponentDraw);
+
+    //#endregion
+  }
+
+  void addGameplayComponents() {
+    addCardsToPile(
+        cards, draw, BlackJackGame.yourBackNumber);
+    addCardsToPile(opponentCards, opponentDraw,
+        BlackJackGame.opponentBackNumber);
+
+    add(draw);
+    add(table);
+    add(discard);
+    player.pileAttribution(draw, discard, table);
+    addAll(cards);
+    player.deckAttribution(cards);
+
+    add(opponentDraw);
+    add(opponentTable);
+    add(opponentDiscard);
+    opponent.pileAttribution(
+        opponentDraw, opponentDiscard, opponentTable);
+    addAll(opponentCards);
+    opponent.deckAttribution(opponentCards);
+
+    addUserInterface();
+  }
+
+  void addUserInterface() {
     //#region Buttons
     hitButton = FlatButton(
       "HIT",
@@ -139,40 +171,45 @@ class BlackJackWorld extends World
     add(standButton);
     //#endregion
 
-    //#region Gameplay Components
+    //#region HP Display
 
-    addCardsToPile(
-        cards, draw, BlackJackGame.yourBackNumber);
-    addCardsToPile(opponentCards, opponentDraw,
-        BlackJackGame.opponentBackNumber);
+    // init
+    playerHPDisplay = TextComponent(
+        text: '${player.hitPoints.value} / ${player.maxHP}',
+        textRenderer: hpRenderer,
+        anchor: Anchor.topLeft,
+        position: Vector2(
+            draw.position.x + cardWidth + cardGap,
+            draw.position.y));
 
-    add(draw);
-    add(table);
-    add(discard);
-    player.pileAttribution(draw, discard, table);
-    addAll(cards);
-    add(baseCard);
-    player.deckAttribution(cards);
+    // onChange
+    player.hitPoints.addListener(() {
+      print('player HP : ${player.hitPoints.value}');
+      playerHPDisplay.text =
+          '${player.hitPoints.value} / ${player.maxHP}';
+    });
 
-    add(opponentDraw);
-    add(opponentTable);
-    add(opponentDiscard);
-    opponent.pileAttribution(
-        opponentDraw, opponentDiscard, opponentTable);
-    addAll(opponentCards);
-    add(opponentBaseCard);
-    opponent.deckAttribution(opponentCards);
+    opponentHPDisplay = TextComponent(
+        text:
+            '${opponent.hitPoints.value} / ${opponent.maxHP}',
+        textRenderer: hpRenderer,
+        anchor: Anchor.topLeft,
+        position: Vector2(
+            opponentDraw.position.x + cardWidth + cardGap,
+            opponentDraw.position.y));
 
-    final gameMidX = playAreaSize.x / 2;
+    // onChange
+    opponent.hitPoints.addListener(() {
+      print('opponent HP : ${opponent.hitPoints.value}');
+      opponentHPDisplay.text =
+          '${opponent.hitPoints.value} / ${opponent.maxHP}';
+    });
 
-    final camera = game.camera;
-    camera.viewfinder.visibleGameSize = playAreaSize;
-    camera.viewfinder.position = Vector2(gameMidX, 0);
-    camera.viewfinder.anchor = Anchor.topCenter;
-    deal(cards, draw);
-    deal(opponentCards, opponentDraw);
-
+    add(opponentHPDisplay);
+    add(playerHPDisplay);
     //#endregion
+
+    //#region Score Display
 
     // init
     playerScoreDisplay = TextComponent(
@@ -214,21 +251,13 @@ class BlackJackWorld extends World
 
     add(playerScoreDisplay);
     add(opponentScoreDisplay);
+
+    //#endregion
   }
 
-  /* @override
-  void update(double dt) {
-    super.update(dt);
-    playerScoreDisplay.text =
-        '${player.score} / ${player.maxScore}';
-    opponentScoreDisplay.text =
-        '${opponent.score} / ${opponent.maxScore}';
-  } */
-
   void deal(List<Card> cards, DrawPile draw) {
-    // TODO: remove comment
-    /* assert(cards.length == 32,
-        'There are ${cards.length} cards: should be 32'); */
+    assert(cards.length == 32,
+        'There are ${cards.length} cards: should be 32');
 
     if (game.action != Action.sameDeal) {
       // New deal: change the Random Number Generator's seed.
@@ -246,51 +275,7 @@ class BlackJackWorld extends World
     for (var n = 0; n <= cards.length - 1; n++) {
       draw.acquireCard(cards[n]);
     }
-
-    // Change priority as cards take off: so later cards fly above earlier ones.
-    /* var cardToDeal = cards.length - 1;
-    var nMovingCards = 0;
-    for (var i = 0; i < 7; i++) {
-      for (var j = i; j < 7; j++) {
-        final card = cards[cardToDeal--];
-        card.doMove(
-          tableauPiles[j].position,
-          speed: 15.0,
-          start: nMovingCards * 0.15,
-          startPriority: 100 + nMovingCards,
-          onComplete: () {
-            tableauPiles[j].acquireCard(card);
-            nMovingCards--;
-            if (nMovingCards == 0) {
-              var delayFactor = 0;
-              for (final tableauPile in tableauPiles) {
-                delayFactor++;
-                tableauPile.flipTopCard(
-                    start: delayFactor * 0.15);
-              }
-            }
-          },
-        );
-        nMovingCards++;
-      }
-    }
-    for (var n = 0; n <= cardToDeal; n++) {
-      draw.acquireCard(cards[n]);
-    } */
   }
-
-  /* void checkWin() {
-    // Callback from a Foundation Pile when it is full (Ace to King).
-    var nComplete = 0;
-    for (final f in foundations) {
-      if (f.isFull) {
-        nComplete++;
-      }
-    }
-    if (nComplete == foundations.length) {
-      letsCelebrate();
-    }
-  } */
 
   void letsCelebrate({int phase = 1}) {
     // Deal won: bring all cards to the middle of the screen (phase 1)
@@ -416,6 +401,8 @@ class BlackJackWorld extends World
     String endResult;
     Color color;
 
+    int matchEndTrigger = 1;
+
     if (player.score.value == opponent.score.value) {
       endResult = "It's a draw !";
       color = const Color(0xFF000000);
@@ -424,17 +411,25 @@ class BlackJackWorld extends World
       endResult =
           "You lose by ${opponent.score.value - player.score.value} points !";
       color = const Color(0xFFC40A0A);
+      matchEndTrigger = await player.loseHP(
+          opponent.score.value - player.score.value);
     } else if (player.score.value > player.maxScore) {
       endResult = "You drew too many cards !";
       color = const Color(0xFFC40A0A);
+      matchEndTrigger =
+          await player.loseHP(opponent.score.value);
     } else if (player.score.value > opponent.score.value &&
         player.score.value <= player.maxScore) {
       endResult =
           "You won by ${player.score.value - opponent.score.value} points !";
       color = const Color(0xFF1A5105);
+      matchEndTrigger = await opponent.loseHP(
+          player.score.value - opponent.score.value);
     } else if (opponent.score.value > opponent.maxScore) {
       endResult = "Your opponent drew too many cards !";
       color = const Color(0xFF1A5105);
+      matchEndTrigger =
+          await opponent.loseHP(player.score.value);
     } else {
       endResult = "How did you get that result ?";
       color = const Color(0xFF000000);
@@ -455,6 +450,7 @@ class BlackJackWorld extends World
           Vector2(playAreaSize.x / 2, playAreaSize.y / 2),
       anchor: Anchor.center,
     );
+
     add(endMessage);
     await Future.delayed(const Duration(seconds: 3), () {
       remove(endMessage);
@@ -462,7 +458,7 @@ class BlackJackWorld extends World
       table
           .removeAllCards()
           .asMap()
-          .forEach((int i, Card card) {
+          .forEach((int i, Card card) async {
         card.doMove(
           discard.position,
           speed: 15.0,
@@ -476,7 +472,7 @@ class BlackJackWorld extends World
       opponentTable
           .removeAllCards()
           .asMap()
-          .forEach((int i, Card card) {
+          .forEach((int i, Card card) async {
         card.doMove(
           opponentDiscard.position,
           speed: 15.0,
@@ -489,7 +485,25 @@ class BlackJackWorld extends World
       });
       player.updateScore();
       opponent.updateScore();
-      hitButton.isDisabled = false;
+      if (matchEndTrigger == 0) {
+        add(TextComponent(
+          priority: 100,
+          //boxConfig: TextBoxConfig(timePerChar: 0.05),
+          text: "Game Over",
+          textRenderer: TextPaint(
+            style: TextStyle(
+              fontSize: 0.05 * playAreaSize.y,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          position: Vector2(
+              playAreaSize.x / 2, playAreaSize.y / 2),
+          anchor: Anchor.center,
+        ));
+      }
     });
+
+    hitButton.isDisabled = false;
   }
 }

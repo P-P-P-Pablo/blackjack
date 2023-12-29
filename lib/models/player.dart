@@ -7,6 +7,8 @@ import '../components/card.dart';
 
 class Player {
   // Declaring instance variable
+  late final ValueNotifier<int> hitPoints;
+  final int maxHP;
   late final List<Card> deck;
   late final DrawPile drawPile;
   late final DiscardPile discardPile;
@@ -14,6 +16,23 @@ class Player {
   final int maxScore = 21;
   ValueNotifier<int> score = ValueNotifier<int>(0);
   int? limit;
+
+  Player(this.maxHP) : hitPoints = ValueNotifier(maxHP);
+
+  Future<int> loseHP(int damage) async {
+    if (damage > hitPoints.value) {
+      damage = hitPoints.value;
+    }
+
+    for (var i = 0; i < damage; i++) {
+      await Future.delayed(
+          const Duration(milliseconds: 500), () {
+        hitPoints.value -= 1;
+      });
+    }
+
+    return hitPoints.value;
+  }
 
   void deckAttribution(List<Card> deck) {
     for (var card in deck) {
@@ -48,10 +67,10 @@ class Player {
       int value = toto;
       // Faces value is 10
       if (value > 10) value = 10;
-      // Ace value is 10 if score < maxScore
+      // Ace value is 11 if score < maxScore
       if (value == 1) {
-        if (scoreValue + 10 < maxScore) {
-          value = 10;
+        if (scoreValue + 11 <= maxScore) {
+          value = 11;
         } else {
           value = 1;
         }
