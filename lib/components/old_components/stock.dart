@@ -1,17 +1,17 @@
-import 'dart:ui';
+/* import 'dart:ui';
 
 import 'package:flame/components.dart';
-import 'package:klondike/models/pile.dart';
+import 'package:blackjack/models/pile.dart';
 
-import '../klondike_game.dart';
+import '../blackjack_game.dart';
 import 'card.dart';
 import 'waste.dart';
 
 class StockPile extends PositionComponent
-    with HasGameReference<KlondikeGame>
+    with HasGameReference<BlackJackGame>
     implements Pile {
   StockPile({super.position})
-      : super(size: KlondikeGame.cardSize);
+      : super(size: BlackJackGame.cardSize);
 
   /// Which cards are currently placed onto this pile. The first card in the
   /// list is at the bottom, the last card is on top.
@@ -58,7 +58,7 @@ class StockPile extends PositionComponent
         acquireCard(card);
       });
     } else {
-      for (var i = 0; i < game.klondikeDraw; i++) {
+      for (var i = 0; i < game.blackjackDraw; i++) {
         if (_cards.isNotEmpty) {
           final card = _cards.removeLast();
           card.doMoveAndFlip(
@@ -85,13 +85,14 @@ class StockPile extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRRect(KlondikeGame.cardRRect, _borderPaint);
+    canvas.drawRRect(BlackJackGame.cardRRect, _borderPaint);
     canvas.drawCircle(
       Offset(width / 2, height / 2),
-      KlondikeGame.cardWidth * 0.3,
+      BlackJackGame.cardWidth * 0.3,
       _circlePaint,
     );
   }
 
   //#endregion
 }
+ */

@@ -6,49 +6,43 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/animation.dart';
 
-import '../klondike_game.dart';
-import '../klondike_world.dart';
+import '../blackjack_game.dart';
+import '../blackjack_world.dart';
 import '../models/pile.dart';
+import '../models/player.dart';
 import '../models/rank.dart';
 import '../models/suit.dart';
-import 'foundation.dart';
-import 'stock.dart';
-import 'tableau_pile.dart';
 
 class Card extends PositionComponent
     with
         DragCallbacks,
         TapCallbacks,
-        HasWorldReference<KlondikeWorld> {
-  Card(int intRank, int intSuit, {this.isBaseCard = false})
+        HasWorldReference<BlackJackWorld> {
+  /* @override
+  bool get debugMode => true; */
+
+  Card(int intRank, int intSuit, this.backNumber)
       : rank = Rank.fromInt(intRank),
         suit = Suit.fromInt(intSuit),
         super(
-          size: KlondikeGame.cardSize,
+          size: BlackJackGame.cardSize,
         );
 
   final Rank rank;
   final Suit suit;
+  final int backNumber;
   Pile? pile;
-
-  // A Base Card is rendered in outline only and is NOT playable. It can be
-  // added to the base of a Pile (e.g. the Stock Pile) to allow it to handle
-  // taps and short drags (on an empty Pile) with the same behavior and
-  // tolerances as for regular cards (see KlondikeGame.dragTolerance) and using
-  // the same event-handling code, but with different handleTapUp() methods.
-  final bool isBaseCard;
+  Player? player;
 
   bool _faceUp = false;
   bool _isAnimatedFlip = false;
   bool _isFaceUpView = false;
-  bool _isDragging = false;
-  Vector2 _whereCardStarted = Vector2(0, 0);
 
   final List<Card> attachedCards = [];
 
   bool get isFaceUp => _faceUp;
   bool get isFaceDown => !_faceUp;
-  void flip() {
+  void basicFlip() {
     if (_isAnimatedFlip) {
       // Let the animation determine the FaceUp/FaceDown state.
       _faceUp = _isFaceUpView;
@@ -67,10 +61,6 @@ class Card extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    if (isBaseCard) {
-      _renderBaseCard(canvas);
-      return;
-    }
     if (_isFaceUpView) {
       _renderFront(canvas);
     } else {
@@ -78,38 +68,63 @@ class Card extends PositionComponent
     }
   }
 
-  static final Paint backBackgroundPaint = Paint()
-    ..color = const Color(0xff380c02);
   static final Paint backBorderPaint1 = Paint()
     ..color = const Color(0xffdbaf58)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 10;
-  static final Paint backBorderPaint2 = Paint()
-    ..color = const Color(0x5CEF971B)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 35;
+
   static final RRect cardRRect = RRect.fromRectAndRadius(
-    KlondikeGame.cardSize.toRect(),
-    const Radius.circular(KlondikeGame.cardRadius),
+    BlackJackGame.cardSize.toRect(),
+    const Radius.circular(BlackJackGame.cardRadius),
   );
-  static final RRect backRRectInner = cardRRect.deflate(40);
-  static final Sprite flameSprite =
-      klondikeSprite(1367, 6, 357, 501);
+
+  double spriteWidth = 102;
+  double spriteHeight = 144;
 
   void _renderBack(Canvas canvas) {
-    canvas.drawRRect(cardRRect, backBackgroundPaint);
-    canvas.drawRRect(cardRRect, backBorderPaint1);
-    canvas.drawRRect(backRRectInner, backBorderPaint2);
-    flameSprite.render(canvas,
-        position: size / 2, anchor: Anchor.center);
+    double spriteX = 0;
+    double spriteY = 0;
+
+    switch (backNumber) {
+      case 1:
+        spriteX = 0;
+        spriteY = 0;
+        break;
+      case 2:
+        spriteX = 102;
+        spriteY = 0;
+        break;
+      case 3:
+        spriteX = 204;
+        spriteY = 0;
+        break;
+      case 4:
+        spriteX = 306;
+        spriteY = 0;
+        break;
+      case 5:
+        spriteX = 0;
+        spriteY = 144;
+        break;
+      case 6:
+        spriteX = 102;
+        spriteY = 144;
+        break;
+      case 7:
+        spriteX = 204;
+        spriteY = 144;
+        break;
+      case 8:
+        spriteX = 306;
+        spriteY = 144;
+        break;
+    }
+
+    final Sprite cardFrontSprite = backSprite(
+        spriteX, spriteY, spriteWidth, spriteHeight);
+    _drawSprite(canvas, cardFrontSprite, 0.5, 0.5);
   }
 
-  void _renderBaseCard(Canvas canvas) {
-    canvas.drawRRect(cardRRect, backBorderPaint1);
-  }
-
-  static final Paint frontBackgroundPaint = Paint()
-    ..color = const Color(0xff000000);
   static final Paint redBorderPaint = Paint()
     ..color = const Color(0xffece8a3)
     ..style = PaintingStyle.stroke
@@ -123,149 +138,15 @@ class Card extends PositionComponent
       Color(0x880d8bff),
       BlendMode.srcATop,
     );
-  static final Sprite redJack =
-      klondikeSprite(81, 565, 562, 488);
-  static final Sprite redQueen =
-      klondikeSprite(717, 541, 486, 515);
-  static final Sprite redKing =
-      klondikeSprite(1305, 532, 407, 549);
-  static final Sprite blackJack =
-      klondikeSprite(81, 565, 562, 488)..paint = blueFilter;
-  static final Sprite blackQueen =
-      klondikeSprite(717, 541, 486, 515)
-        ..paint = blueFilter;
-  static final Sprite blackKing =
-      klondikeSprite(1305, 532, 407, 549)
-        ..paint = blueFilter;
 
   void _renderFront(Canvas canvas) {
-    canvas.drawRRect(cardRRect, frontBackgroundPaint);
-    canvas.drawRRect(
-      cardRRect,
-      suit.isRed ? redBorderPaint : blackBorderPaint,
-    );
+    final double spriteX =
+        rank.value * spriteWidth - spriteWidth;
+    final double spriteY = suit.value * spriteHeight;
 
-    final rankSprite =
-        suit.isBlack ? rank.blackSprite : rank.redSprite;
-    final suitSprite = suit.sprite;
-    _drawSprite(canvas, rankSprite, 0.1, 0.08);
-    _drawSprite(canvas, suitSprite, 0.1, 0.18, scale: 0.5);
-    _drawSprite(canvas, rankSprite, 0.1, 0.08,
-        rotate: true);
-    _drawSprite(canvas, suitSprite, 0.1, 0.18,
-        scale: 0.5, rotate: true);
-    switch (rank.value) {
-      case 1:
-        _drawSprite(canvas, suitSprite, 0.5, 0.5,
-            scale: 2.5);
-        break;
-      case 2:
-        _drawSprite(canvas, suitSprite, 0.5, 0.25);
-        _drawSprite(canvas, suitSprite, 0.5, 0.25,
-            rotate: true);
-        break;
-      case 3:
-        _drawSprite(canvas, suitSprite, 0.5, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.5);
-        _drawSprite(canvas, suitSprite, 0.5, 0.2,
-            rotate: true);
-        break;
-      case 4:
-        _drawSprite(canvas, suitSprite, 0.3, 0.25);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25);
-        _drawSprite(canvas, suitSprite, 0.3, 0.25,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25,
-            rotate: true);
-        break;
-      case 5:
-        _drawSprite(canvas, suitSprite, 0.3, 0.25);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25);
-        _drawSprite(canvas, suitSprite, 0.3, 0.25,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.5, 0.5);
-        break;
-      case 6:
-        _drawSprite(canvas, suitSprite, 0.3, 0.25);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25);
-        _drawSprite(canvas, suitSprite, 0.3, 0.5);
-        _drawSprite(canvas, suitSprite, 0.7, 0.5);
-        _drawSprite(canvas, suitSprite, 0.3, 0.25,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.25,
-            rotate: true);
-        break;
-      case 7:
-        _drawSprite(canvas, suitSprite, 0.3, 0.2);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.35);
-        _drawSprite(canvas, suitSprite, 0.3, 0.5);
-        _drawSprite(canvas, suitSprite, 0.7, 0.5);
-        _drawSprite(canvas, suitSprite, 0.3, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2,
-            rotate: true);
-        break;
-      case 8:
-        _drawSprite(canvas, suitSprite, 0.3, 0.2);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.35);
-        _drawSprite(canvas, suitSprite, 0.3, 0.5);
-        _drawSprite(canvas, suitSprite, 0.7, 0.5);
-        _drawSprite(canvas, suitSprite, 0.3, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.5, 0.35,
-            rotate: true);
-        break;
-      case 9:
-        _drawSprite(canvas, suitSprite, 0.3, 0.2);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.3);
-        _drawSprite(canvas, suitSprite, 0.3, 0.4);
-        _drawSprite(canvas, suitSprite, 0.7, 0.4);
-        _drawSprite(canvas, suitSprite, 0.3, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.3, 0.4,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.4,
-            rotate: true);
-        break;
-      case 10:
-        _drawSprite(canvas, suitSprite, 0.3, 0.2);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2);
-        _drawSprite(canvas, suitSprite, 0.5, 0.3);
-        _drawSprite(canvas, suitSprite, 0.3, 0.4);
-        _drawSprite(canvas, suitSprite, 0.7, 0.4);
-        _drawSprite(canvas, suitSprite, 0.3, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.2,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.5, 0.3,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.3, 0.4,
-            rotate: true);
-        _drawSprite(canvas, suitSprite, 0.7, 0.4,
-            rotate: true);
-        break;
-      case 11:
-        _drawSprite(canvas,
-            suit.isRed ? redJack : blackJack, 0.5, 0.5);
-        break;
-      case 12:
-        _drawSprite(canvas,
-            suit.isRed ? redQueen : blackQueen, 0.5, 0.5);
-        break;
-      case 13:
-        _drawSprite(canvas,
-            suit.isRed ? redKing : blackKing, 0.5, 0.5);
-        break;
-    }
+    final Sprite cardFrontSprite = frontSprite(
+        spriteX, spriteY, spriteWidth, spriteHeight);
+    _drawSprite(canvas, cardFrontSprite, 0.5, 0.5);
   }
 
   void _drawSprite(
@@ -273,7 +154,7 @@ class Card extends PositionComponent
     Sprite sprite,
     double relativeX,
     double relativeY, {
-    double scale = 1,
+    double scale = 10,
     bool rotate = false,
   }) {
     if (rotate) {
@@ -295,160 +176,6 @@ class Card extends PositionComponent
   }
 
   //#endregion
-
-  //#region Card-Dragging
-
-  @override
-  void onTapCancel(TapCancelEvent event) {
-    if (pile is StockPile) {
-      _isDragging = false;
-      handleTapUp();
-    }
-  }
-
-  @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    if (pile is StockPile) {
-      _isDragging = false;
-      return;
-    }
-    // Clone the position, else _whereCardStarted changes as the position does.
-    _whereCardStarted = position.clone();
-    attachedCards.clear();
-    if (pile?.canMoveCard(this, MoveMethod.drag) ?? false) {
-      _isDragging = true;
-      priority = 100;
-      if (pile is TableauPile) {
-        final extraCards =
-            (pile! as TableauPile).cardsOnTop(this);
-        for (final card in extraCards) {
-          card.priority = attachedCards.length + 101;
-          attachedCards.add(card);
-        }
-      }
-    }
-  }
-
-  @override
-  void onDragUpdate(DragUpdateEvent event) {
-    if (!_isDragging) {
-      return;
-    }
-    final delta = event.localDelta;
-    position.add(delta);
-    for (var card in attachedCards) {
-      card.position.add(delta);
-    }
-  }
-
-  @override
-  void onDragEnd(DragEndEvent event) {
-    super.onDragEnd(event);
-    if (!_isDragging) {
-      return;
-    }
-    _isDragging = false;
-
-    // If short drag, return card to Pile and treat it as having been tapped.
-    final shortDrag =
-        (position - _whereCardStarted).length <
-            KlondikeGame.dragTolerance;
-    if (shortDrag && attachedCards.isEmpty) {
-      doMove(
-        _whereCardStarted,
-        onComplete: () {
-          pile!.returnCard(this);
-          // Card moves to its Foundation Pile next, if valid, or it stays put.
-          handleTapUp();
-        },
-      );
-      return;
-    }
-
-    // Find out what is under the center-point of this card when it is dropped.
-    final dropPiles = parent!
-        .componentsAtPoint(position + size / 2)
-        .whereType<Pile>()
-        .toList();
-    if (dropPiles.isNotEmpty) {
-      if (dropPiles.first.canAcceptCard(this)) {
-        // Found a Pile: move card(s) the rest of the way onto it.
-        pile!.removeCard(this, MoveMethod.drag);
-        if (dropPiles.first is TableauPile) {
-          // Get TableauPile to handle positions, priorities and moves of cards.
-          (dropPiles.first as TableauPile)
-              .dropCards(this, attachedCards);
-          attachedCards.clear();
-        } else {
-          // Drop a single card onto a FoundationPile.
-          final dropPosition =
-              (dropPiles.first as FoundationPile).position;
-          doMove(
-            dropPosition,
-            onComplete: () {
-              dropPiles.first.acquireCard(this);
-            },
-          );
-        }
-        return;
-      }
-    }
-
-    // Invalid drop (middle of nowhere, invalid pile or invalid card for pile).
-    doMove(
-      _whereCardStarted,
-      onComplete: () {
-        pile!.returnCard(this);
-      },
-    );
-    if (attachedCards.isNotEmpty) {
-      for (var card in attachedCards) {
-        final offset = card.position - position;
-        card.doMove(
-          _whereCardStarted + offset,
-          onComplete: () {
-            pile!.returnCard(card);
-          },
-        );
-      }
-      attachedCards.clear();
-    }
-  }
-
-  //#endregion
-
-  //#region Card-Tapping
-
-  // Tap a face-up card to make it auto-move and go out (if acceptable), but
-  // if it is face-down and on the Stock Pile, pass the event to that pile.
-
-  @override
-  void onTapUp(TapUpEvent event) {
-    handleTapUp();
-  }
-
-  void handleTapUp() {
-    // Can be called by onTapUp or after a very short (failed) drag-and-drop.
-    // We need to be more user-friendly towards taps that include a short drag.
-    if (pile?.canMoveCard(this, MoveMethod.tap) ?? false) {
-      final suitIndex = suit.value;
-      if (world.foundations[suitIndex]
-          .canAcceptCard(this)) {
-        pile!.removeCard(this, MoveMethod.tap);
-        doMove(
-          world.foundations[suitIndex].position,
-          onComplete: () {
-            world.foundations[suitIndex].acquireCard(this);
-          },
-        );
-      }
-    } else if (pile is StockPile) {
-      world.stock.handleTapUp(this);
-    }
-  }
-
-  //#endRegion
 
   //#region Effects
 
@@ -495,7 +222,7 @@ class Card extends PositionComponent
         EffectController(
             duration: dt, startDelay: start, curve: curve),
         onComplete: () {
-          turnFaceUp(
+          animatedFlip(
             onComplete: whenDone,
           );
         },
@@ -503,13 +230,11 @@ class Card extends PositionComponent
     );
   }
 
-  void turnFaceUp({
+  void animatedFlip({
     double time = 0.3,
     double start = 0.0,
     VoidCallback? onComplete,
   }) {
-    assert(!_isFaceUpView,
-        'Card must be face-down before turning face-up.');
     assert(
         time > 0.0, 'Time to turn card over must be > 0');
     assert(start >= 0.0, 'Start tim must be >= 0');
@@ -525,12 +250,12 @@ class Card extends PositionComponent
           curve: Curves.easeOutSine,
           duration: time / 2,
           onMax: () {
-            _isFaceUpView = true;
+            _isFaceUpView = !_isFaceUpView;
           },
           reverseDuration: time / 2,
           onMin: () {
             _isAnimatedFlip = false;
-            _faceUp = true;
+            _faceUp = !_faceUp;
             anchor = Anchor.topLeft;
             position -= Vector2(width / 2, 0);
           },

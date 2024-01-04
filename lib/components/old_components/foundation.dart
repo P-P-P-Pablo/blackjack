@@ -1,8 +1,8 @@
-import 'dart:ui';
+/* import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-import '../klondike_game.dart';
+import '../blackjack_game.dart';
 import '../models/pile.dart';
 import '../models/suit.dart';
 import 'card.dart';
@@ -12,7 +12,7 @@ class FoundationPile extends PositionComponent
   FoundationPile(int intSuit, this.checkWin,
       {super.position})
       : suit = Suit.fromInt(intSuit),
-        super(size: KlondikeGame.cardSize);
+        super(size: BlackJackGame.cardSize);
 
   final VoidCallback checkWin;
 
@@ -58,7 +58,7 @@ class FoundationPile extends PositionComponent
     card.pile = this;
     _cards.add(card);
     if (isFull) {
-      checkWin(); // Get KlondikeWorld to check all FoundationPiles.
+      checkWin(); // Get BlackJackWorld to check all FoundationPiles.
     }
   }
 
@@ -78,15 +78,16 @@ class FoundationPile extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRRect(KlondikeGame.cardRRect, _borderPaint);
+    canvas.drawRRect(BlackJackGame.cardRRect, _borderPaint);
     suit.sprite.render(
       canvas,
       position: size / 2,
       anchor: Anchor.center,
-      size: Vector2.all(KlondikeGame.cardWidth * 0.6),
+      size: Vector2.all(BlackJackGame.cardWidth * 0.6),
       overridePaint: _suitPaint,
     );
   }
 
   //#endregion
 }
+ */

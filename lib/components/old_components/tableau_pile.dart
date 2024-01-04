@@ -1,20 +1,20 @@
-import 'dart:ui';
+/* import 'dart:ui';
 import 'package:flame/components.dart';
-import '../klondike_game.dart';
+import '../blackjack_game.dart';
 import '../models/pile.dart';
 import 'card.dart';
 
 class TableauPile extends PositionComponent
     implements Pile {
   TableauPile({super.position})
-      : super(size: KlondikeGame.cardSize);
+      : super(size: BlackJackGame.cardSize);
 
   /// Which cards are currently placed onto this pile.
   final List<Card> _cards = [];
   final Vector2 _fanOffset1 =
-      Vector2(0, KlondikeGame.cardHeight * 0.05);
+      Vector2(0, BlackJackGame.cardHeight * 0.05);
   final Vector2 _fanOffset2 =
-      Vector2(0, KlondikeGame.cardHeight * 0.20);
+      Vector2(0, BlackJackGame.cardHeight * 0.20);
 
   //#region Pile API
 
@@ -118,7 +118,7 @@ class TableauPile extends PositionComponent
   }
 
   void calculateHitArea() {
-    height = KlondikeGame.cardHeight * 1.5 +
+    height = BlackJackGame.cardHeight * 1.5 +
         (_cards.length < 2
             ? 0.0
             : _cards.last.y - _cards.first.y);
@@ -141,8 +141,9 @@ class TableauPile extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRRect(KlondikeGame.cardRRect, _borderPaint);
+    canvas.drawRRect(BlackJackGame.cardRRect, _borderPaint);
   }
 
   //#endregion
 }
+ */

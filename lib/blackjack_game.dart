@@ -1,18 +1,20 @@
-import 'dart:ui';
-
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
 
-import 'klondike_world.dart';
+import 'blackjack_world.dart';
 
-enum Action { newDeal, sameDeal, changeDraw, haveFun }
+enum Action { newDeal, sameDeal }
 
-class KlondikeGame extends FlameGame<KlondikeWorld> {
+class BlackJackGame extends FlameGame<BlackJackWorld> {
+  @override
+  Color backgroundColor() => Colors.grey;
+
   static const double cardGap = 175.0;
-  static const double topGap = 500.0;
-  static const double cardWidth = 1000.0;
-  static const double cardHeight = 1400.0;
+  static const double borderGap = 300.0;
+  static const double cardWidth = 1020.0;
+  static const double cardHeight = 1440.0;
   static const double cardRadius = 100.0;
   static const double cardSpaceWidth = cardWidth + cardGap;
   static const double cardSpaceHeight =
@@ -23,6 +25,9 @@ class KlondikeGame extends FlameGame<KlondikeWorld> {
     const Rect.fromLTWH(0, 0, cardWidth, cardHeight),
     const Radius.circular(cardRadius),
   );
+  static const opponentLimit = 17;
+  static const yourBackNumber = 2;
+  static const opponentBackNumber = 4;
 
   /// Constant used to decide when a short drag is treated as a TapUp event.
   static const double dragTolerance = cardWidth / 5;
@@ -31,22 +36,31 @@ class KlondikeGame extends FlameGame<KlondikeWorld> {
   static const int maxInt =
       0xFFFFFFFE; // = (2 to the power 32) - 1
 
-  // This KlondikeGame constructor also initiates the first KlondikeWorld.
-  KlondikeGame() : super(world: KlondikeWorld());
+  // This BlackJackGame constructor also initiates the first BlackJackWorld.
+  BlackJackGame() : super(world: BlackJackWorld());
 
   // These three values persist between games and are starting conditions
-  // for the next game to be played in KlondikeWorld. The actual seed is
-  // computed in KlondikeWorld but is held here in case the player chooses
+  // for the next game to be played in BlackJackWorld. The actual seed is
+  // computed in BlackJackWorld but is held here in case the player chooses
   // to replay a game by selecting Action.sameDeal.
-  int klondikeDraw = 1;
+  int blackjackDraw = 1;
   int seed = 1;
   Action action = Action.newDeal;
 }
 
-Sprite klondikeSprite(
+Sprite frontSprite(
     double x, double y, double width, double height) {
   return Sprite(
-    Flame.images.fromCache('klondike-sprites.png'),
+    Flame.images.fromCache('cards.png'),
+    srcPosition: Vector2(x, y),
+    srcSize: Vector2(width, height),
+  );
+}
+
+Sprite backSprite(
+    double x, double y, double width, double height) {
+  return Sprite(
+    Flame.images.fromCache('backsheet.png'),
     srcPosition: Vector2(x, y),
     srcSize: Vector2(width, height),
   );

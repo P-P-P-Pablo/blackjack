@@ -1,19 +1,18 @@
 import 'package:flame/components.dart';
+import 'package:flame/input.dart';
 import 'package:flame/text.dart';
 import 'package:flutter/material.dart';
 
-class FlatButton extends AdvancedButtonComponent {
+class FlatButton extends ButtonComponent {
   FlatButton(
     String text, {
     super.size,
+    super.onReleased,
     super.position,
-    super.onPressed,
   }) : super(
-          defaultSkin: ButtonBackground(Colors.blueGrey,
+          button: ButtonBackground(Colors.blueGrey,
               Colors.white.withOpacity(0.2)),
-          downSkin: ButtonBackground(
-              Colors.amber, Colors.white.withOpacity(0.6)),
-          disabledSkin: ButtonBackground(
+          buttonDown: ButtonBackground(
               Colors.amber, Colors.white.withOpacity(0.6)),
           children: [
             TextComponent(
