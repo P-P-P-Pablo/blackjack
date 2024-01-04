@@ -1,6 +1,6 @@
-import 'package:blackjack/components/flat_button.dart';
+import '../components/flat_button.dart';
 import 'package:flame/components.dart';
-import 'package:blackjack/models/pile.dart';
+import '../models/pile.dart';
 
 import '../blackjack_game.dart';
 import '../models/player.dart';

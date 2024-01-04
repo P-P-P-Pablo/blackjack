@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:blackjack/models/player.dart';
+import '../models/player.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flutter/painting.dart';

@@ -1,6 +1,6 @@
-import 'package:blackjack/components/discard_pile.dart';
-import 'package:blackjack/components/draw_pile.dart';
-import 'package:blackjack/components/table_pile.dart';
+import '../components/discard_pile.dart';
+import '../components/draw_pile.dart';
+import '../components/table_pile.dart';
 import 'package:flutter/foundation.dart';
 
 import '../components/card.dart';
