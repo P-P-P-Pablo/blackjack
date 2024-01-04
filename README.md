@@ -18,11 +18,19 @@ samples, guidance on mobile development, and a full API reference.
 
 ### To Do
 
+#### Menu
+- [ ] Routing
+- [ ] Main Menu
+- [ ] Pause Menu
+- [ ] Settings
+
 #### Gameplay
 - [x] Scores
 - [x] Hitpoints
 - [x] Rounds
 - [ ] Differents Opponents
+- [ ] Upgradable Ranks
+- [ ] Upgradable Suits
 
 #### Actions
 - [x] Hit action
@@ -30,8 +38,9 @@ samples, guidance on mobile development, and a full API reference.
 - [ ] New Deal action
 
 #### Animations
-- [ ] Make Cards Move from center to respective pile whan game starts
+- [ ] Make Cards Move from center to respective pile when game starts
 - [ ] others
+- [ ] Custom Buttons
 
 #### Misc
 - [x] New Sprites
