@@ -259,10 +259,8 @@ class BlackJackWorld extends World
     assert(cards.length == 32,
         'There are ${cards.length} cards: should be 32');
 
-    if (game.action != Action.sameDeal) {
-      // New deal: change the Random Number Generator's seed.
-      game.seed = Random().nextInt(BlackJackGame.maxInt);
-    }
+    game.seed = Random().nextInt(BlackJackGame.maxInt);
+
     // For the "Same deal" option, re-use the previous seed, else use a new one.
     cards.shuffle(Random(game.seed));
 
@@ -485,25 +483,31 @@ class BlackJackWorld extends World
       });
       player.updateScore();
       opponent.updateScore();
-      if (matchEndTrigger == 0) {
-        add(TextComponent(
-          priority: 100,
-          //boxConfig: TextBoxConfig(timePerChar: 0.05),
-          text: "Game Over",
-          textRenderer: TextPaint(
-            style: TextStyle(
-              fontSize: 0.05 * playAreaSize.y,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          position: Vector2(
-              playAreaSize.x / 2, playAreaSize.y / 2),
-          anchor: Anchor.center,
-        ));
-      }
+      endGame(matchEndTrigger == 0, color);
     });
 
     hitButton.isDisabled = false;
+  }
+
+  void endGame(bool matchEndTrigger, Color color) {
+    if (matchEndTrigger) {
+      add(TextComponent(
+        priority: 100,
+        text: "Game Over",
+        textRenderer: TextPaint(
+          style: TextStyle(
+            fontSize: 0.05 * playAreaSize.y,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        position:
+            Vector2(playAreaSize.x / 2, playAreaSize.y / 2),
+        anchor: Anchor.center,
+      ));
+      Future.delayed(const Duration(seconds: 3), () {
+        game.world = BlackJackWorld();
+      });
+    }
   }
 }
